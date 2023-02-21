@@ -110,10 +110,12 @@
         </portal>
         <portal to="event-popup-form" class="slotable">
             <div slot-scope="information" class="popup-event">
+                
                 <slot name="popup-form" :popup_information="information">
                     <h4 style="margin-bottom: 10px">
                         New Appointment
                     </h4>
+                    <calendar_modal :modal="new_appointment"></calendar_modal>
                     <input
                         v-model="new_appointment['title']"
                         type="text"
