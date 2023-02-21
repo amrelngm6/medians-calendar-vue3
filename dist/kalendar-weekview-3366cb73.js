@@ -1,4 +1,4 @@
-import { i as isWeekend, a as isToday, g as getLocaleTime, b as _objectSpread2, c as cloneObject, d as __vue_normalize__, e as __vue_create_injector__, f as isBefore, h as getHourlessDate, j as addTimezoneInfo } from './index-478f7fa6.js';
+import { i as isWeekend, a as isToday, g as getLocaleTime, b as _objectSpread2, c as cloneObject, d as __vue_normalize__, e as __vue_create_injector__, f as isBefore, h as getHourlessDate, j as addTimezoneInfo } from './index-76f1295f.js';
 import 'vue';
 
 function PromiseWorker (worker) {
@@ -124,7 +124,7 @@ var script = {
   },
   components: {
     kalendarCell: function kalendarCell() {
-      return import('./kalendar-cell-30994ac7.js');
+      return import('./kalendar-cell-70795f97.js');
     }
   },
   provide: function provide() {
@@ -571,6 +571,10 @@ var script$1 = {
       validator: function validator(d) {
         return !isNaN(Date.parse(d));
       }
+    },
+    devices: {
+      required: false,
+      type: Array
     }
   },
   components: {
@@ -753,27 +757,27 @@ var __vue_render__$1 = function __vue_render__() {
     staticClass: "sticky-top"
   }, [_c('ul', {
     staticClass: "days"
-  }, _vm._l(_vm.days || [], function (ref, index) {
+  }, _vm._l(_vm.devices || [], function (ref, index) {
     var value = ref.value;
     return _c('li', {
       key: index,
       staticClass: "day-indicator",
       class: {
-        today: _vm._isToday(value),
-        'is-before': _vm.isDayBefore(value)
+        today: _vm._isToday(_vm.days[0]),
+        'is-before': _vm.isDayBefore(_vm.days[0])
       }
     }, [_c('div', [_c('span', {
       staticClass: "letters-date"
-    }, [_vm._v(_vm._s(_vm.kalendar_options.formatDayTitle(value)[0]))]), _vm._v(" "), _c('span', {
+    }, [_vm._v(_vm._s(value.title))]), _vm._v(" "), _c('span', {
       staticClass: "number-date"
-    }, [_vm._v(_vm._s(_vm.kalendar_options.formatDayTitle(value)[1]))])])]);
+    }, [_vm._v(_vm._s(value.id))])])]);
   }), 0), _vm._v(" "), _c('ul', {
     staticClass: "all-day"
-  }, [_c('span', [_vm._v("All Day")]), _vm._v(" "), _vm._l(_vm.days || [], function (date, index) {
+  }, [_c('span', [_vm._v("All Day")]), _vm._v(" "), _vm._l(_vm.devices || [], function (device, index) {
     return _c('li', {
       key: index,
       class: {
-        'all-today': _vm._isToday(date.value),
+        'all-today': _vm._isToday(_vm.days[0]),
         'is-all-day': false
       },
       style: "height:" + (_vm.kalendar_options.cell_height + 5) + "px"
@@ -803,15 +807,15 @@ var __vue_render__$1 = function __vue_render__() {
     staticClass: "time-value"
   }, [_vm._v(_vm._s(_vm.passedTime.value))]), _vm._v(" "), _c('span', {
     staticClass: "line"
-  })]), _vm._v(" "), _vm._l(_vm.days, function (day, index) {
+  })]), _vm._v(" "), _vm._l(_vm.devices, function (day, index) {
     return _c('kalendar-days', {
-      key: day.value.slice(0, 10),
-      ref: day.value.slice(0, 10),
+      key: 'day' + index,
+      ref: 'day' + index,
       refInFor: true,
       staticClass: "building-blocks",
       class: "day-" + (index + 1),
       attrs: {
-        "day": day,
+        "day": _vm.days[0],
         "passed-time": _vm.passedTime.distance
       }
     });
@@ -823,7 +827,7 @@ var __vue_staticRenderFns__$1 = [];
 
 var __vue_inject_styles__$1 = function __vue_inject_styles__(inject) {
   if (!inject) return;
-  inject("data-v-212de34a_0", {
+  inject("data-v-1d7d5927_0", {
     source: ".calendar-wrap{display:flex;flex-direction:column}.calendar-wrap ul{list-style:none;padding:0}.calendar-wrap ul>li{display:flex}.sticky-top{position:sticky;top:0;z-index:20;background-color:#fff}.sticky-top .days{margin:0;display:flex;margin-left:55px}.sticky-top .days li{display:inline-flex;align-items:flex-end;padding-top:10px;flex:1;font-size:1.1rem;color:#666;font-weight:300;margin-right:var(--space-between-cols);border-bottom:solid 1px #e5e5e5;padding-bottom:5px;position:relative;font-size:18px}.sticky-top .days li span{margin-right:3px}.sticky-top .days li span:first-child{font-size:20px;font-weight:500}.sticky-top .days .today{border-bottom-color:var(--main-color);color:var(--main-color)!important}.sticky-top .days .today::after{content:\"\";position:absolute;height:2px;bottom:0;left:0;width:100%;background-color:var(--main-color)}.sticky-top .all-day{display:flex;margin-bottom:0;margin-top:0;border-bottom:solid 2px #e5e5e5}.sticky-top .all-day span{display:flex;align-items:center;padding:0 5px;width:55px;font-weight:500;font-size:.8rem;color:#b8bbca;text-transform:lowercase}.sticky-top .all-day li{flex:1;margin-right:var(--space-between-cols)}.sticky-top .all-day li.all-today{background-color:#fef4f4}.dummy-row{display:flex;padding-left:55px}.dummy-row ul{display:flex;flex:1;margin:0}.dummy-row li{flex:1;height:15px;margin-right:var(--space-between-cols);border-bottom:solid 1px #e5e5e5}.blocks{display:flex;position:relative;height:100%}.blocks ul{margin-top:0}.blocks .building-blocks{flex:1;margin-right:var(--space-between-cols);margin-bottom:0;display:flex;flex-direction:column}.blocks .calendar-blocks{width:100%;display:flex;position:relative}.hours{display:flex;flex-direction:column;color:#b8bbca;font-weight:500;font-size:.85rem;width:55px;height:100%;margin-bottom:0}.hours li{color:var(--hour-row-color);border-bottom:solid 1px transparent;padding-left:8px}.hours li span{margin-top:-8px}.hours li:first-child span{visibility:hidden}",
     map: undefined,
     media: undefined
