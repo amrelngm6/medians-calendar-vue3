@@ -62,7 +62,7 @@
           class="building-blocks"
           :class="`day-${index + 1}`"
           :key="day.value.slice(0, 10)"
-          v-for="(day, index) in days"
+          v-for="(day, index) in devices"
           :passed-time="passedTime.distance"
           :ref="day.value.slice(0, 10)"
         >
@@ -88,6 +88,10 @@ export default {
       required: true,
       type: String,
       validator: d => !isNaN(Date.parse(d)),
+    },
+    devices: {
+      required: false,
+      type: Array
     }
   },
   components: {

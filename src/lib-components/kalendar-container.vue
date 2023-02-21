@@ -93,7 +93,7 @@
                 </button>
             </div>
         </div>
-        <kalendar-week-view :current_day="current_day" />
+        <kalendar-week-view :devices="" :current_day="current_day" />
         <portal to="event-creation" class="slotable">
             <div slot-scope="information" class="creating-event">
                 <slot name="creating-card" :event_information="information">
@@ -110,7 +110,7 @@
         </portal>
         <portal to="event-popup-form" class="slotable">
             <div slot-scope="information" class="popup-event">
-                
+
                 <slot name="popup-form" :popup_information="information">
                     <h4 style="margin-bottom: 10px">
                         New Appointment
@@ -172,6 +172,13 @@ export default {
         KalendarWeekView: () => import('./kalendar-weekview.vue'),
     },
     props: {
+        devices: {
+            required: true,
+            type: Array,
+            validator: function(val) {
+                return Array.isArray(val);
+            },
+        },
         // this provided array will be kept in sync
         events: {
             required: true,
