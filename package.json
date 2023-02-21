@@ -1,6 +1,6 @@
 {
-    "name": "kalendar-vue",
-    "version": "2.1.3",
+    "name": "medians-calendar",
+    "version": "0.0.1",
     "description": "",
     "private": false,
     "main": "dist/index.js",
