@@ -1,27 +1,24 @@
 {
-  "_from": "kalendar-vue@2.1.3",
-  "_id": "kalendar-vue@2.1.3",
+  "_from": "git+https://github.com/amrelngm6/medians_calendar.git",
+  "_id": "medians-calendar@0.0.1",
   "_inBundle": false,
-  "_integrity": "sha512-RyF6XWfl/K20jXzU7LN0na6U1pEBl98aNIAbwLNCz+fOVjEnrcWROun7SyxMBn+tT47GDWCroErLSaiiiXigUg==",
-  "_location": "/kalendar-vue",
+  "_integrity": "",
+  "_location": "/medians-calendar",
   "_phantomChildren": {},
   "_requested": {
-    "type": "version",
-    "registry": true,
-    "raw": "kalendar-vue@2.1.3",
-    "name": "kalendar-vue",
-    "escapedName": "kalendar-vue",
-    "rawSpec": "2.1.3",
-    "saveSpec": null,
-    "fetchSpec": "2.1.3"
+    "type": "git",
+    "raw": "git+https://github.com/amrelngm6/medians_calendar.git",
+    "rawSpec": "git+https://github.com/amrelngm6/medians_calendar.git",
+    "saveSpec": "git+https://github.com/amrelngm6/medians_calendar.git",
+    "fetchSpec": "https://github.com/amrelngm6/medians_calendar.git",
+    "gitCommittish": null
   },
   "_requiredBy": [
     "#USER",
     "/"
   ],
-  "_resolved": "https://registry.npmjs.org/kalendar-vue/-/kalendar-vue-2.1.3.tgz",
-  "_shasum": "3162b145997035f2626667e991460192db640be7",
-  "_spec": "kalendar-vue@2.1.3",
+  "_resolved": "git+https://github.com/amrelngm6/medians_calendar.git#347b96c1817fae195198ad34e5f83c5a4bfe22ed",
+  "_spec": "git+https://github.com/amrelngm6/medians_calendar.git",
   "_where": "E:\\Development\\xampp8\\htdocs\\medians\\medians_ps",
   "bundleDependencies": false,
   "dependencies": {
@@ -29,7 +26,7 @@
     "vue-highlightjs": "^1.3.3"
   },
   "deprecated": false,
-  "description": "[![npm version](https://badge.fury.io/js/kalendar-vue.svg)](https://badge.fury.io/js/kalendar-vue) [![Open Source Love](https://badges.frapsoft.com/os/v1/open-source.svg?v=102)](https://github.com/ellerbrock/open-source-badge/) [![Open Source Love](https://badges.frapsoft.com/os/mit/mit.svg?v=102)](https://github.com/ellerbrock/open-source-badge/) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)",
+  "description": "",
   "devDependencies": {
     "@babel/compat-data": "^7.12.7",
     "@babel/core": "^7.7.7",
@@ -64,7 +61,7 @@
     "!src/serve-dev.*"
   ],
   "main": "dist/index.js",
-  "name": "kalendar-vue",
+  "name": "medians-calendar",
   "peerDependencies": {
     "vue": "^2.6.10",
     "portal-vue": "^2.1.7"
@@ -85,5 +82,5 @@
     "build:ssr": "cross-env NODE_ENV=production rollup --config build/rollup.config.js --format cjs",
     "serve": "vue-cli-service serve src/serve-dev.js"
   },
-  "version": "2.1.3"
+  "version": "0.0.1"
 }
