@@ -47,6 +47,10 @@
 import { isBefore, getLocaleTime, addTimezoneInfo } from './utils.js';
 
 export default {
+
+    components: {
+        PortalEvent: () => import("./kalendar-event.vue")
+    },
     props: ['event', 'total', 'index', 'overlaps'],
     created() {},
     inject: ['kalendar_options'],

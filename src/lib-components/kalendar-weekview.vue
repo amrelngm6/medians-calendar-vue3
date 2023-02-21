@@ -50,7 +50,6 @@
           </li>
         </ul>
         <div
-          v-if="passedTime"
           v-show="kalendar_options.style !== 'material_design'"
           class="hour-indicator-line"
           :style="`top:${passedTime.distance}px`"
@@ -64,7 +63,7 @@
           :class="`day-${index + 1}`"
           :key="day.value.slice(0, 10)"
           v-for="(day, index) in days"
-          :passed-time="passedTime ? passedTime.distance : false"
+          :passed-time="passedTime.distance"
           :ref="day.value.slice(0, 10)"
         >
         </kalendar-days>
@@ -118,7 +117,7 @@ export default {
       // * this.kalendar_options.hour_parts;
     },
     passedTime() {
-      let { day_starts_at, day_ends_at, now, cell_height } = this.kalendar_options;
+      let { day_starts_at, day_ends_at, now } = this.kalendar_options;
       let time = getLocaleTime(now);
       let day_starts = `${time.split("T")[0]}T${(day_starts_at + "").padStart(2, '0')}:00:00.000Z`;
       let day_ends = `${time.split("T")[0]}T${(day_ends_at + "").padStart(2, '0')}:00:00.000Z`;
@@ -126,7 +125,7 @@ export default {
 
       if(new Date(day_ends) < time_obj || time_obj < new Date(day_starts)) return null;
 
-      let distance = ((time_obj - new Date(day_starts)) / 1000 / 60 / 10 * cell_height);
+      let distance = (time_obj - new Date(day_starts)) / 1000 / 60;
       return {distance, time};
     }
   },
@@ -178,10 +177,9 @@ export default {
       ]);
     },
     addHelperMethods() {
-      this.$kalendar.buildWeek = () => this.constructWeek(),
-      
-      this.$kalendar.getVisibleDays = () => this.days;
-      
+      this.$kalendar.buildWeek = () => {
+        this.constructWeek();
+      };
       this.$kalendar.addNewEvent = payload => {
         if (!payload) return Promise.reject("No payload");
 

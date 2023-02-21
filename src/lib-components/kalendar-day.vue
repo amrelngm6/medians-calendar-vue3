@@ -16,7 +16,7 @@
           ? 'hour-indicator-line'
           : 'hour-indicator-tooltip'
       "
-      v-if="isToday && passedTime"
+      v-if="isToday"
       :style="`top:${passedTime}px`"
     >
       <span

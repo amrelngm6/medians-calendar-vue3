@@ -314,16 +314,7 @@ export default {
         getTime,
         changeDay(numDays) {
             this.current_day = addDays(this.current_day, numDays).toISOString();
-            setTimeout(() => {
-                this.$kalendar
-                    .buildWeek()
-                    .then(() =>
-                        this.$emit(
-                            'day-changed',
-                            this.$kalendar.getVisibleDays()
-                        )
-                    );
-            });
+            setTimeout(() => this.$kalendar.buildWeek());
         },
         addAppointment(popup_info) {
             let payload = {
