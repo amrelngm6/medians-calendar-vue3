@@ -111,25 +111,16 @@
         <portal to="event-popup-form" class="slotable">
             <div slot-scope="information" class="popup-event">
 
+                
                 <slot name="popup-form" :popup_information="information">
-                    <h4 style="margin-bottom: 10px">
-                        New Appointment
-                    </h4>
-                    <calendar_modal :modal="new_appointment"></calendar_modal>
-                    <input
-                        v-model="new_appointment['title']"
+                
+                   <input
+                        v-model="activeItem.title"
                         type="text"
                         name="title"
                         placeholder="Title"
                         style="width: 100%;"
                     />
-                    <textarea
-                        v-model="new_appointment['description']"
-                        type="text"
-                        name="description"
-                        placeholder="Description"
-                        rows="2"
-                    ></textarea>
                     <div class="buttons">
                         <button class="cancel" @click="closePopups()">
                             Cancel
@@ -141,21 +132,22 @@
                 </slot>
             </div>
         </portal>
-        <portal to="event-details" class="slotable">
-            <div slot-scope="information" class="created-event">
-                <slot name="created-card" :event_information="information">
-                    <h4 style="margin-bottom: 5px">{{ information.data }}</h4>
-                    <p>
-                        {{ information.start_time.substr(11, 5) }} -
-                        {{ information.end_time.substr(11, 5) }}
-                    </p>
-                </slot>
+
+
+        <div v-if="showModal && activeItem" class="fixed top-0 left-0 w-full h-full"  style="z-index: 99;">
+            <div class="absolute top-0 left-0 w-full h-full" @click="show_modal" style="background: rgba(0,0,0,6);"></div>
+            <div class="left-0 right-0 fixed mx-auto w-full " style="max-width: 600px; z-index: 99;" >
+                <div class="relative h-full ">
+                    <calendar_active_item :modal="activeItem"></calendar_active_item>
+                </div>
             </div>
-        </portal>
+        </div>  
+
     </div>
 </template>
 <script>
 import Vue from 'vue';
+const axios = require('axios').default;
 
 import {
     addDays,
@@ -199,6 +191,7 @@ export default {
     },
     data() {
         return {
+            showModal: false,
             current_day: getHourlessDate(),
             default_options: {
                 cell_height: 10,
@@ -236,11 +229,13 @@ export default {
                 },
                 formatDayNavigator: isoDate => {
                     let day = new Date(isoDate);
+                    this.log(day.toUTCString().slice(5, 16));
+                    this.log(day.toUTCString().slice(5, 11));
                     return day.toUTCString().slice(5, 11);
                 },
             },
             kalendar_events: null,
-            new_appointment: {},
+            activeItem: {},
             scrollable: true,
         };
     },
@@ -281,31 +276,25 @@ export default {
     },
     created() {
         this.current_day = this.kalendar_options.start_day;
-        this.kalendar_events = this.events.map(event => ({
-            ...event,
-            id: event.id || generateUUID(),
-        }));
+        this.loadEvents();
+        // this.kalendar_events = .events.map(event => ({
+        //     ...event,
+        //     id: event.id || generateUUID(),
+        // }));
 
         if (!this.$kalendar) {
             Vue.prototype.$kalendar = {};
         }
 
-        this.$kalendar.getEvents = () => this.kalendar_events.slice(0);
 
-        this.$kalendar.updateEvents = payload => {
-            this.kalendar_events = payload.map(event => ({
-                ...event,
-                id: event.id || generateUUID(),
-            }));
-            this.$emit(
-                'update:events',
-                payload.map(event => ({
-                    from: event.from,
-                    to: event.to,
-                    data: event.data,
-                }))
-            );
-        };
+        this.$kalendar.reloadEvents = () => this.loadEvents();
+
+        this.$kalendar.getEvents = () => this.kalendar_events;
+
+        this.$kalendar.updateEvents = () => this.loadEvents().kalendar_events;
+        
+
+
     },
     provide() {
         const provider = {};
@@ -320,16 +309,21 @@ export default {
         return provider;
     },
     methods: {
+        show_modal(item= null)
+        {
+            this.showModal = this.showModal ? false : true;
+            this.activeItem = item;
+        },
         getTime,
         changeDay(numDays) {
             this.current_day = addDays(this.current_day, numDays).toISOString();
-            setTimeout(() => this.$kalendar.buildWeek());
+            setTimeout(() => this.loadEvents().$kalendar.buildWeek());
         },
         addAppointment(popup_info) {
             let payload = {
                 data: {
-                    title: this.new_appointment.title,
-                    description: this.new_appointment.description,
+                    title: this.activeItem.title,
+                    description: this.activeItem.description,
                 },
                 from: popup_info.start_time,
                 to: popup_info.end_time,
@@ -340,7 +334,7 @@ export default {
             this.clearFormData();
         },
         clearFormData() {
-            this.new_appointment = {
+            this.activeItem = {
                 description: null,
                 title: null,
             };
@@ -348,7 +342,61 @@ export default {
         closePopups() {
             this.$kalendar.closePopups();
         },
+
+
+        /**
+         * Update event data
+         */
+        updateInfo(activeItem)
+        {
+            this.showModal = false; 
+            this.reloadEvents();
+            this.showModal = true
+
+            return this;
+        } ,
+
+        log(data)
+        {
+            this.$parent.log(data);
+        },
+
+        /**
+         * Load events 
+         */
+        async loadEvents()
+        {
+            return await this.handleGetRequest('/api/calendar_events?start='+this.current_day+'&end='+addDays(this.current_day, 1).toISOString()).then(response => {
+                this.log('response')
+                this.log(response)
+                this.kalendar_events = response;
+                return this;
+            });
+        } ,
+
+        async handleGetRequest(url) {
+
+            // Demo json data
+            return await axios.get(url).then(response => 
+            {
+                if (response.data)
+                    return response.data;
+                else 
+                    return response;
+            });
+        },
+
+        async handleRequest(params, url='/') {
+            return await this.$parent.handleRequest(params, url);
+        },
+        __(i)
+        {
+            return this.$parent.__(i);
+        },
+
     },
+
+
 };
 </script>
 <style lang="scss" src="./main.scss"></style>

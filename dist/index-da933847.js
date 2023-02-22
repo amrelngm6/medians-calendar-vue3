@@ -1,18 +1,43 @@
+import axios$1 from 'axios';
 import Vue from 'vue';
 
+function _iterableToArrayLimit(arr, i) {
+  var _i = null == arr ? null : "undefined" != typeof Symbol && arr[Symbol.iterator] || arr["@@iterator"];
+  if (null != _i) {
+    var _s,
+      _e,
+      _x,
+      _r,
+      _arr = [],
+      _n = !0,
+      _d = !1;
+    try {
+      if (_x = (_i = _i.call(arr)).next, 0 === i) {
+        if (Object(_i) !== _i) return;
+        _n = !1;
+      } else for (; !(_n = (_s = _x.call(_i)).done) && (_arr.push(_s.value), _arr.length !== i); _n = !0);
+    } catch (err) {
+      _d = !0, _e = err;
+    } finally {
+      try {
+        if (!_n && null != _i.return && (_r = _i.return(), Object(_r) !== _r)) return;
+      } finally {
+        if (_d) throw _e;
+      }
+    }
+    return _arr;
+  }
+}
 function ownKeys(object, enumerableOnly) {
   var keys = Object.keys(object);
-
   if (Object.getOwnPropertySymbols) {
     var symbols = Object.getOwnPropertySymbols(object);
     enumerableOnly && (symbols = symbols.filter(function (sym) {
       return Object.getOwnPropertyDescriptor(object, sym).enumerable;
     })), keys.push.apply(keys, symbols);
   }
-
   return keys;
 }
-
 function _objectSpread2(target) {
   for (var i = 1; i < arguments.length; i++) {
     var source = null != arguments[i] ? arguments[i] : {};
@@ -22,10 +47,309 @@ function _objectSpread2(target) {
       Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
     });
   }
-
   return target;
 }
-
+function _regeneratorRuntime() {
+  _regeneratorRuntime = function () {
+    return exports;
+  };
+  var exports = {},
+    Op = Object.prototype,
+    hasOwn = Op.hasOwnProperty,
+    defineProperty = Object.defineProperty || function (obj, key, desc) {
+      obj[key] = desc.value;
+    },
+    $Symbol = "function" == typeof Symbol ? Symbol : {},
+    iteratorSymbol = $Symbol.iterator || "@@iterator",
+    asyncIteratorSymbol = $Symbol.asyncIterator || "@@asyncIterator",
+    toStringTagSymbol = $Symbol.toStringTag || "@@toStringTag";
+  function define(obj, key, value) {
+    return Object.defineProperty(obj, key, {
+      value: value,
+      enumerable: !0,
+      configurable: !0,
+      writable: !0
+    }), obj[key];
+  }
+  try {
+    define({}, "");
+  } catch (err) {
+    define = function (obj, key, value) {
+      return obj[key] = value;
+    };
+  }
+  function wrap(innerFn, outerFn, self, tryLocsList) {
+    var protoGenerator = outerFn && outerFn.prototype instanceof Generator ? outerFn : Generator,
+      generator = Object.create(protoGenerator.prototype),
+      context = new Context(tryLocsList || []);
+    return defineProperty(generator, "_invoke", {
+      value: makeInvokeMethod(innerFn, self, context)
+    }), generator;
+  }
+  function tryCatch(fn, obj, arg) {
+    try {
+      return {
+        type: "normal",
+        arg: fn.call(obj, arg)
+      };
+    } catch (err) {
+      return {
+        type: "throw",
+        arg: err
+      };
+    }
+  }
+  exports.wrap = wrap;
+  var ContinueSentinel = {};
+  function Generator() {}
+  function GeneratorFunction() {}
+  function GeneratorFunctionPrototype() {}
+  var IteratorPrototype = {};
+  define(IteratorPrototype, iteratorSymbol, function () {
+    return this;
+  });
+  var getProto = Object.getPrototypeOf,
+    NativeIteratorPrototype = getProto && getProto(getProto(values([])));
+  NativeIteratorPrototype && NativeIteratorPrototype !== Op && hasOwn.call(NativeIteratorPrototype, iteratorSymbol) && (IteratorPrototype = NativeIteratorPrototype);
+  var Gp = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(IteratorPrototype);
+  function defineIteratorMethods(prototype) {
+    ["next", "throw", "return"].forEach(function (method) {
+      define(prototype, method, function (arg) {
+        return this._invoke(method, arg);
+      });
+    });
+  }
+  function AsyncIterator(generator, PromiseImpl) {
+    function invoke(method, arg, resolve, reject) {
+      var record = tryCatch(generator[method], generator, arg);
+      if ("throw" !== record.type) {
+        var result = record.arg,
+          value = result.value;
+        return value && "object" == typeof value && hasOwn.call(value, "__await") ? PromiseImpl.resolve(value.__await).then(function (value) {
+          invoke("next", value, resolve, reject);
+        }, function (err) {
+          invoke("throw", err, resolve, reject);
+        }) : PromiseImpl.resolve(value).then(function (unwrapped) {
+          result.value = unwrapped, resolve(result);
+        }, function (error) {
+          return invoke("throw", error, resolve, reject);
+        });
+      }
+      reject(record.arg);
+    }
+    var previousPromise;
+    defineProperty(this, "_invoke", {
+      value: function (method, arg) {
+        function callInvokeWithMethodAndArg() {
+          return new PromiseImpl(function (resolve, reject) {
+            invoke(method, arg, resolve, reject);
+          });
+        }
+        return previousPromise = previousPromise ? previousPromise.then(callInvokeWithMethodAndArg, callInvokeWithMethodAndArg) : callInvokeWithMethodAndArg();
+      }
+    });
+  }
+  function makeInvokeMethod(innerFn, self, context) {
+    var state = "suspendedStart";
+    return function (method, arg) {
+      if ("executing" === state) throw new Error("Generator is already running");
+      if ("completed" === state) {
+        if ("throw" === method) throw arg;
+        return doneResult();
+      }
+      for (context.method = method, context.arg = arg;;) {
+        var delegate = context.delegate;
+        if (delegate) {
+          var delegateResult = maybeInvokeDelegate(delegate, context);
+          if (delegateResult) {
+            if (delegateResult === ContinueSentinel) continue;
+            return delegateResult;
+          }
+        }
+        if ("next" === context.method) context.sent = context._sent = context.arg;else if ("throw" === context.method) {
+          if ("suspendedStart" === state) throw state = "completed", context.arg;
+          context.dispatchException(context.arg);
+        } else "return" === context.method && context.abrupt("return", context.arg);
+        state = "executing";
+        var record = tryCatch(innerFn, self, context);
+        if ("normal" === record.type) {
+          if (state = context.done ? "completed" : "suspendedYield", record.arg === ContinueSentinel) continue;
+          return {
+            value: record.arg,
+            done: context.done
+          };
+        }
+        "throw" === record.type && (state = "completed", context.method = "throw", context.arg = record.arg);
+      }
+    };
+  }
+  function maybeInvokeDelegate(delegate, context) {
+    var methodName = context.method,
+      method = delegate.iterator[methodName];
+    if (undefined === method) return context.delegate = null, "throw" === methodName && delegate.iterator.return && (context.method = "return", context.arg = undefined, maybeInvokeDelegate(delegate, context), "throw" === context.method) || "return" !== methodName && (context.method = "throw", context.arg = new TypeError("The iterator does not provide a '" + methodName + "' method")), ContinueSentinel;
+    var record = tryCatch(method, delegate.iterator, context.arg);
+    if ("throw" === record.type) return context.method = "throw", context.arg = record.arg, context.delegate = null, ContinueSentinel;
+    var info = record.arg;
+    return info ? info.done ? (context[delegate.resultName] = info.value, context.next = delegate.nextLoc, "return" !== context.method && (context.method = "next", context.arg = undefined), context.delegate = null, ContinueSentinel) : info : (context.method = "throw", context.arg = new TypeError("iterator result is not an object"), context.delegate = null, ContinueSentinel);
+  }
+  function pushTryEntry(locs) {
+    var entry = {
+      tryLoc: locs[0]
+    };
+    1 in locs && (entry.catchLoc = locs[1]), 2 in locs && (entry.finallyLoc = locs[2], entry.afterLoc = locs[3]), this.tryEntries.push(entry);
+  }
+  function resetTryEntry(entry) {
+    var record = entry.completion || {};
+    record.type = "normal", delete record.arg, entry.completion = record;
+  }
+  function Context(tryLocsList) {
+    this.tryEntries = [{
+      tryLoc: "root"
+    }], tryLocsList.forEach(pushTryEntry, this), this.reset(!0);
+  }
+  function values(iterable) {
+    if (iterable) {
+      var iteratorMethod = iterable[iteratorSymbol];
+      if (iteratorMethod) return iteratorMethod.call(iterable);
+      if ("function" == typeof iterable.next) return iterable;
+      if (!isNaN(iterable.length)) {
+        var i = -1,
+          next = function next() {
+            for (; ++i < iterable.length;) if (hasOwn.call(iterable, i)) return next.value = iterable[i], next.done = !1, next;
+            return next.value = undefined, next.done = !0, next;
+          };
+        return next.next = next;
+      }
+    }
+    return {
+      next: doneResult
+    };
+  }
+  function doneResult() {
+    return {
+      value: undefined,
+      done: !0
+    };
+  }
+  return GeneratorFunction.prototype = GeneratorFunctionPrototype, defineProperty(Gp, "constructor", {
+    value: GeneratorFunctionPrototype,
+    configurable: !0
+  }), defineProperty(GeneratorFunctionPrototype, "constructor", {
+    value: GeneratorFunction,
+    configurable: !0
+  }), GeneratorFunction.displayName = define(GeneratorFunctionPrototype, toStringTagSymbol, "GeneratorFunction"), exports.isGeneratorFunction = function (genFun) {
+    var ctor = "function" == typeof genFun && genFun.constructor;
+    return !!ctor && (ctor === GeneratorFunction || "GeneratorFunction" === (ctor.displayName || ctor.name));
+  }, exports.mark = function (genFun) {
+    return Object.setPrototypeOf ? Object.setPrototypeOf(genFun, GeneratorFunctionPrototype) : (genFun.__proto__ = GeneratorFunctionPrototype, define(genFun, toStringTagSymbol, "GeneratorFunction")), genFun.prototype = Object.create(Gp), genFun;
+  }, exports.awrap = function (arg) {
+    return {
+      __await: arg
+    };
+  }, defineIteratorMethods(AsyncIterator.prototype), define(AsyncIterator.prototype, asyncIteratorSymbol, function () {
+    return this;
+  }), exports.AsyncIterator = AsyncIterator, exports.async = function (innerFn, outerFn, self, tryLocsList, PromiseImpl) {
+    void 0 === PromiseImpl && (PromiseImpl = Promise);
+    var iter = new AsyncIterator(wrap(innerFn, outerFn, self, tryLocsList), PromiseImpl);
+    return exports.isGeneratorFunction(outerFn) ? iter : iter.next().then(function (result) {
+      return result.done ? result.value : iter.next();
+    });
+  }, defineIteratorMethods(Gp), define(Gp, toStringTagSymbol, "Generator"), define(Gp, iteratorSymbol, function () {
+    return this;
+  }), define(Gp, "toString", function () {
+    return "[object Generator]";
+  }), exports.keys = function (val) {
+    var object = Object(val),
+      keys = [];
+    for (var key in object) keys.push(key);
+    return keys.reverse(), function next() {
+      for (; keys.length;) {
+        var key = keys.pop();
+        if (key in object) return next.value = key, next.done = !1, next;
+      }
+      return next.done = !0, next;
+    };
+  }, exports.values = values, Context.prototype = {
+    constructor: Context,
+    reset: function (skipTempReset) {
+      if (this.prev = 0, this.next = 0, this.sent = this._sent = undefined, this.done = !1, this.delegate = null, this.method = "next", this.arg = undefined, this.tryEntries.forEach(resetTryEntry), !skipTempReset) for (var name in this) "t" === name.charAt(0) && hasOwn.call(this, name) && !isNaN(+name.slice(1)) && (this[name] = undefined);
+    },
+    stop: function () {
+      this.done = !0;
+      var rootRecord = this.tryEntries[0].completion;
+      if ("throw" === rootRecord.type) throw rootRecord.arg;
+      return this.rval;
+    },
+    dispatchException: function (exception) {
+      if (this.done) throw exception;
+      var context = this;
+      function handle(loc, caught) {
+        return record.type = "throw", record.arg = exception, context.next = loc, caught && (context.method = "next", context.arg = undefined), !!caught;
+      }
+      for (var i = this.tryEntries.length - 1; i >= 0; --i) {
+        var entry = this.tryEntries[i],
+          record = entry.completion;
+        if ("root" === entry.tryLoc) return handle("end");
+        if (entry.tryLoc <= this.prev) {
+          var hasCatch = hasOwn.call(entry, "catchLoc"),
+            hasFinally = hasOwn.call(entry, "finallyLoc");
+          if (hasCatch && hasFinally) {
+            if (this.prev < entry.catchLoc) return handle(entry.catchLoc, !0);
+            if (this.prev < entry.finallyLoc) return handle(entry.finallyLoc);
+          } else if (hasCatch) {
+            if (this.prev < entry.catchLoc) return handle(entry.catchLoc, !0);
+          } else {
+            if (!hasFinally) throw new Error("try statement without catch or finally");
+            if (this.prev < entry.finallyLoc) return handle(entry.finallyLoc);
+          }
+        }
+      }
+    },
+    abrupt: function (type, arg) {
+      for (var i = this.tryEntries.length - 1; i >= 0; --i) {
+        var entry = this.tryEntries[i];
+        if (entry.tryLoc <= this.prev && hasOwn.call(entry, "finallyLoc") && this.prev < entry.finallyLoc) {
+          var finallyEntry = entry;
+          break;
+        }
+      }
+      finallyEntry && ("break" === type || "continue" === type) && finallyEntry.tryLoc <= arg && arg <= finallyEntry.finallyLoc && (finallyEntry = null);
+      var record = finallyEntry ? finallyEntry.completion : {};
+      return record.type = type, record.arg = arg, finallyEntry ? (this.method = "next", this.next = finallyEntry.finallyLoc, ContinueSentinel) : this.complete(record);
+    },
+    complete: function (record, afterLoc) {
+      if ("throw" === record.type) throw record.arg;
+      return "break" === record.type || "continue" === record.type ? this.next = record.arg : "return" === record.type ? (this.rval = this.arg = record.arg, this.method = "return", this.next = "end") : "normal" === record.type && afterLoc && (this.next = afterLoc), ContinueSentinel;
+    },
+    finish: function (finallyLoc) {
+      for (var i = this.tryEntries.length - 1; i >= 0; --i) {
+        var entry = this.tryEntries[i];
+        if (entry.finallyLoc === finallyLoc) return this.complete(entry.completion, entry.afterLoc), resetTryEntry(entry), ContinueSentinel;
+      }
+    },
+    catch: function (tryLoc) {
+      for (var i = this.tryEntries.length - 1; i >= 0; --i) {
+        var entry = this.tryEntries[i];
+        if (entry.tryLoc === tryLoc) {
+          var record = entry.completion;
+          if ("throw" === record.type) {
+            var thrown = record.arg;
+            resetTryEntry(entry);
+          }
+          return thrown;
+        }
+      }
+      throw new Error("illegal catch attempt");
+    },
+    delegateYield: function (iterable, resultName, nextLoc) {
+      return this.delegate = {
+        iterator: values(iterable),
+        resultName: resultName,
+        nextLoc: nextLoc
+      }, "next" === this.method && (this.arg = undefined), ContinueSentinel;
+    }
+  }, exports;
+}
 function _typeof(obj) {
   "@babel/helpers - typeof";
 
@@ -35,8 +359,38 @@ function _typeof(obj) {
     return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
   }, _typeof(obj);
 }
-
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) {
+  try {
+    var info = gen[key](arg);
+    var value = info.value;
+  } catch (error) {
+    reject(error);
+    return;
+  }
+  if (info.done) {
+    resolve(value);
+  } else {
+    Promise.resolve(value).then(_next, _throw);
+  }
+}
+function _asyncToGenerator(fn) {
+  return function () {
+    var self = this,
+      args = arguments;
+    return new Promise(function (resolve, reject) {
+      var gen = fn.apply(self, args);
+      function _next(value) {
+        asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value);
+      }
+      function _throw(err) {
+        asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err);
+      }
+      _next(undefined);
+    });
+  };
+}
 function _defineProperty(obj, key, value) {
+  key = _toPropertyKey(key);
   if (key in obj) {
     Object.defineProperty(obj, key, {
       value: value,
@@ -47,48 +401,14 @@ function _defineProperty(obj, key, value) {
   } else {
     obj[key] = value;
   }
-
   return obj;
 }
-
 function _slicedToArray(arr, i) {
   return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest();
 }
-
 function _arrayWithHoles(arr) {
   if (Array.isArray(arr)) return arr;
 }
-
-function _iterableToArrayLimit(arr, i) {
-  var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"];
-
-  if (_i == null) return;
-  var _arr = [];
-  var _n = true;
-  var _d = false;
-
-  var _s, _e;
-
-  try {
-    for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) {
-      _arr.push(_s.value);
-
-      if (i && _arr.length === i) break;
-    }
-  } catch (err) {
-    _d = true;
-    _e = err;
-  } finally {
-    try {
-      if (!_n && _i["return"] != null) _i["return"]();
-    } finally {
-      if (_d) throw _e;
-    }
-  }
-
-  return _arr;
-}
-
 function _unsupportedIterableToArray(o, minLen) {
   if (!o) return;
   if (typeof o === "string") return _arrayLikeToArray(o, minLen);
@@ -97,21 +417,30 @@ function _unsupportedIterableToArray(o, minLen) {
   if (n === "Map" || n === "Set") return Array.from(o);
   if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen);
 }
-
 function _arrayLikeToArray(arr, len) {
   if (len == null || len > arr.length) len = arr.length;
-
   for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i];
-
   return arr2;
 }
-
 function _nonIterableRest() {
   throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
 }
+function _toPrimitive(input, hint) {
+  if (typeof input !== "object" || input === null) return input;
+  var prim = input[Symbol.toPrimitive];
+  if (prim !== undefined) {
+    var res = prim.call(input, hint || "default");
+    if (typeof res !== "object") return res;
+    throw new TypeError("@@toPrimitive must return a primitive value.");
+  }
+  return (hint === "string" ? String : Number)(input);
+}
+function _toPropertyKey(arg) {
+  var key = _toPrimitive(arg, "string");
+  return typeof key === "symbol" ? key : String(key);
+}
 
 var creators_offset = new Date().getTimezoneOffset() / 60;
-
 if (creators_offset * -1 >= 0) {
   creators_offset *= -1;
   creators_offset = "".concat((creators_offset + "").padStart(2, "0"), ":00");
@@ -120,104 +449,85 @@ if (creators_offset * -1 >= 0) {
   creators_offset = "".concat((creators_offset + "").padStart(2, "0"), ":00");
   creators_offset = "-".concat(creators_offset);
 }
-
 var getHourlessDate = function getHourlessDate(date_string) {
   var today = date_string ? new Date(date_string) : new Date();
   var year = today.getFullYear() + "",
-      month = (today.getMonth() + 1 + "").padStart(2, "0"),
-      day = (today.getDate() + "").padStart(2, "0");
+    month = (today.getMonth() + 1 + "").padStart(2, "0"),
+    day = (today.getDate() + "").padStart(2, "0");
   return "".concat(year, "-").concat(month, "-").concat(day, "T00:00:00.000Z");
 };
-
 var getDatelessHour = function getDatelessHour(date_string, military) {
   var time = addTimezoneInfo(date_string);
   if (military) return getLocaleTime(time).slice(11, 16);
   return formatAMPM(new Date(getLocaleTime(time)));
 };
-
 var getTime = function getTime(date) {
   var dateObj = new Date(date);
   var minutes = dateObj.getUTCHours().toString().padStart(2, "0");
   var seconds = dateObj.getUTCMinutes().toString().padStart(2, "0");
   return "".concat(minutes, ":").concat(seconds);
 };
-
 var addDays = function addDays(date, days) {
   var dateObj = new Date(date);
   dateObj.setUTCHours(0, 0, 0, 0);
   dateObj.setDate(dateObj.getDate() + days);
   return dateObj;
 };
-
 var startOfWeek = function startOfWeek(date) {
   var d = new Date(date);
   var day = d.getDay(),
-      diff = d.getDate() - day; // diff is 0-indexed
+    diff = d.getDate() - day;
 
+  // diff is 0-indexed
   diff++;
   return new Date(d.setDate(diff));
 };
-
 var endOfWeek = function endOfWeek(date) {
   var dateObj = new Date(date);
   dateObj.setUTCHours(0, 0, 0, 0);
   var toAdd = 7 - dateObj.getDay(); // getDate is also 0-indexed
-
   return addDays(dateObj, toAdd);
 };
-
-var generateUUID = function generateUUID() {
-  return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, function (c) {
-    return (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16);
-  });
-};
-
 var cloneObject = function cloneObject(object) {
   return JSON.parse(JSON.stringify(object));
 };
-
 var getLocaleTime = function getLocaleTime(dateString) {
   var _Date$toLocaleString$ = new Date(dateString).toLocaleString("en-GB").split(", "),
-      _Date$toLocaleString$2 = _slicedToArray(_Date$toLocaleString$, 2),
-      date = _Date$toLocaleString$2[0],
-      hour = _Date$toLocaleString$2[1];
-
+    _Date$toLocaleString$2 = _slicedToArray(_Date$toLocaleString$, 2),
+    date = _Date$toLocaleString$2[0],
+    hour = _Date$toLocaleString$2[1];
   date = date.split("/").reverse().join("-");
   return "".concat(date, "T").concat(hour, ".000Z");
 };
-
 var addTimezoneInfo = function addTimezoneInfo(ISOdate) {
   if (new Date(ISOdate).toISOString() !== ISOdate) return;
   return "".concat(ISOdate.slice(0, 19)).concat(creators_offset);
 };
-
 var isToday = function isToday(date) {
   if (!date) return;
   var today = getLocaleTime(new Date()).slice(0, 10);
   return date.slice(0, 10) === today;
 };
-
 var isBefore = function isBefore(date1, date2) {
   if (!date1 || !date2) return;
   return new Date(date1) < new Date(date2);
 };
-
 var isWeekend = function isWeekend(date) {
   if (!date) return;
   var day = new Date(date).getDay();
   return day === 6 || day === 0;
 };
-
 var formatAMPM = function formatAMPM(date) {
   var hours = date.getUTCHours();
   var result = "".concat(hours % 12 === 0 ? 12 : hours % 12, " ").concat(hours >= 12 ? "PM" : "AM");
   return result;
 };
 
+var axios = axios$1.default;
 var script = {
   components: {
     KalendarWeekView: function KalendarWeekView() {
-      return import('./kalendar-weekview-3366cb73.js');
+      return import('./kalendar-weekview-8b66c944.js');
     }
   },
   props: {
@@ -248,8 +558,8 @@ var script = {
   },
   data: function data() {
     var _this = this;
-
     return {
+      showModal: false,
       current_day: getHourlessDate(),
       default_options: {
         cell_height: 10,
@@ -284,11 +594,13 @@ var script = {
         },
         formatDayNavigator: function formatDayNavigator(isoDate) {
           var day = new Date(isoDate);
+          _this.log(day.toUTCString().slice(5, 16));
+          _this.log(day.toUTCString().slice(5, 11));
           return day.toUTCString().slice(5, 11);
         }
       },
       kalendar_events: null,
-      new_appointment: {},
+      activeItem: {},
       scrollable: true
     };
   },
@@ -342,53 +654,38 @@ var script = {
           return typeof val === 'boolean';
         }
       };
-
       for (var key in provided_props) {
         if (conditions.hasOwnProperty(key) && conditions[key](provided_props[key])) {
           options[key] = provided_props[key];
         }
       }
-
       return options;
     }
   },
   created: function created() {
     var _this2 = this;
-
     this.current_day = this.kalendar_options.start_day;
-    this.kalendar_events = this.events.map(function (event) {
-      return _objectSpread2(_objectSpread2({}, event), {}, {
-        id: event.id || generateUUID()
-      });
-    });
+    this.loadEvents();
+    // this.kalendar_events = .events.map(event => ({
+    //     ...event,
+    //     id: event.id || generateUUID(),
+    // }));
 
     if (!this.$kalendar) {
       Vue.prototype.$kalendar = {};
     }
-
-    this.$kalendar.getEvents = function () {
-      return _this2.kalendar_events.slice(0);
+    this.$kalendar.reloadEvents = function () {
+      return _this2.loadEvents();
     };
-
-    this.$kalendar.updateEvents = function (payload) {
-      _this2.kalendar_events = payload.map(function (event) {
-        return _objectSpread2(_objectSpread2({}, event), {}, {
-          id: event.id || generateUUID()
-        });
-      });
-
-      _this2.$emit('update:events', payload.map(function (event) {
-        return {
-          from: event.from,
-          to: event.to,
-          data: event.data
-        };
-      }));
+    this.$kalendar.getEvents = function () {
+      return _this2.kalendar_events;
+    };
+    this.$kalendar.updateEvents = function () {
+      return _this2.loadEvents().kalendar_events;
     };
   },
   provide: function provide() {
     var _this3 = this;
-
     var provider = {};
     Object.defineProperty(provider, 'kalendar_options', {
       enumerable: true,
@@ -405,20 +702,24 @@ var script = {
     return provider;
   },
   methods: {
+    show_modal: function show_modal() {
+      var item = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
+      this.showModal = this.showModal ? false : true;
+      this.activeItem = item;
+    },
     getTime: getTime,
     changeDay: function changeDay(numDays) {
       var _this4 = this;
-
       this.current_day = addDays(this.current_day, numDays).toISOString();
       setTimeout(function () {
-        return _this4.$kalendar.buildWeek();
+        return _this4.loadEvents().$kalendar.buildWeek();
       });
     },
     addAppointment: function addAppointment(popup_info) {
       var payload = {
         data: {
-          title: this.new_appointment.title,
-          description: this.new_appointment.description
+          title: this.activeItem.title,
+          description: this.activeItem.description
         },
         from: popup_info.start_time,
         to: popup_info.end_time
@@ -428,13 +729,91 @@ var script = {
       this.clearFormData();
     },
     clearFormData: function clearFormData() {
-      this.new_appointment = {
+      this.activeItem = {
         description: null,
         title: null
       };
     },
     closePopups: function closePopups() {
       this.$kalendar.closePopups();
+    },
+    /**
+     * Update event data
+     */
+    updateInfo: function updateInfo(activeItem) {
+      this.showModal = false;
+      this.reloadEvents();
+      this.showModal = true;
+      return this;
+    },
+    log: function log(data) {
+      this.$parent.log(data);
+    },
+    /**
+     * Load events 
+     */
+    loadEvents: function loadEvents() {
+      var _this5 = this;
+      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee() {
+        return _regeneratorRuntime().wrap(function _callee$(_context) {
+          while (1) switch (_context.prev = _context.next) {
+            case 0:
+              _context.next = 2;
+              return _this5.handleGetRequest('/api/calendar_events?start=' + _this5.current_day + '&end=' + addDays(_this5.current_day, 1).toISOString()).then(function (response) {
+                _this5.log('response');
+                _this5.log(response);
+                _this5.kalendar_events = response;
+                return _this5;
+              });
+            case 2:
+              return _context.abrupt("return", _context.sent);
+            case 3:
+            case "end":
+              return _context.stop();
+          }
+        }, _callee);
+      }))();
+    },
+    handleGetRequest: function handleGetRequest(url) {
+      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2() {
+        return _regeneratorRuntime().wrap(function _callee2$(_context2) {
+          while (1) switch (_context2.prev = _context2.next) {
+            case 0:
+              _context2.next = 2;
+              return axios.get(url).then(function (response) {
+                if (response.data) return response.data;else return response;
+              });
+            case 2:
+              return _context2.abrupt("return", _context2.sent);
+            case 3:
+            case "end":
+              return _context2.stop();
+          }
+        }, _callee2);
+      }))();
+    },
+    handleRequest: function handleRequest(params) {
+      var _arguments = arguments,
+        _this6 = this;
+      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3() {
+        var url;
+        return _regeneratorRuntime().wrap(function _callee3$(_context3) {
+          while (1) switch (_context3.prev = _context3.next) {
+            case 0:
+              url = _arguments.length > 1 && _arguments[1] !== undefined ? _arguments[1] : '/';
+              _context3.next = 3;
+              return _this6.$parent.handleRequest(params, url);
+            case 3:
+              return _context3.abrupt("return", _context3.sent);
+            case 4:
+            case "end":
+              return _context3.stop();
+          }
+        }, _callee3);
+      }))();
+    },
+    __: function __(i) {
+      return this.$parent.__(i);
     }
   }
 };
@@ -569,15 +948,12 @@ function addStyle(id, css) {
 
 /* script */
 var __vue_script__ = script;
-/* template */
 
+/* template */
 var __vue_render__ = function __vue_render__() {
   var _vm = this;
-
   var _h = _vm.$createElement;
-
   var _c = _vm._self._c || _h;
-
   return _c('div', {
     staticClass: "kalendar-wrapper",
     class: {
@@ -737,20 +1113,12 @@ var __vue_render__ = function __vue_render__() {
         return _c('div', {
           staticClass: "popup-event"
         }, [_vm._t("popup-form", function () {
-          return [_c('h4', {
-            staticStyle: {
-              "margin-bottom": "10px"
-            }
-          }, [_vm._v("\n                    New Appointment\n                ")]), _vm._v(" "), _c('calendar_modal', {
-            attrs: {
-              "modal": _vm.new_appointment
-            }
-          }), _vm._v(" "), _c('input', {
+          return [_c('input', {
             directives: [{
               name: "model",
               rawName: "v-model",
-              value: _vm.new_appointment['title'],
-              expression: "new_appointment['title']"
+              value: _vm.activeItem.title,
+              expression: "activeItem.title"
             }],
             staticStyle: {
               "width": "100%"
@@ -761,40 +1129,14 @@ var __vue_render__ = function __vue_render__() {
               "placeholder": "Title"
             },
             domProps: {
-              "value": _vm.new_appointment['title']
+              "value": _vm.activeItem.title
             },
             on: {
               "input": function input($event) {
                 if ($event.target.composing) {
                   return;
                 }
-
-                _vm.$set(_vm.new_appointment, 'title', $event.target.value);
-              }
-            }
-          }), _vm._v(" "), _c('textarea', {
-            directives: [{
-              name: "model",
-              rawName: "v-model",
-              value: _vm.new_appointment['description'],
-              expression: "new_appointment['description']"
-            }],
-            attrs: {
-              "type": "text",
-              "name": "description",
-              "placeholder": "Description",
-              "rows": "2"
-            },
-            domProps: {
-              "value": _vm.new_appointment['description']
-            },
-            on: {
-              "input": function input($event) {
-                if ($event.target.composing) {
-                  return;
-                }
-
-                _vm.$set(_vm.new_appointment, 'description', $event.target.value);
+                _vm.$set(_vm.activeItem, "title", $event.target.value);
               }
             }
           }), _vm._v(" "), _c('div', {
@@ -818,50 +1160,49 @@ var __vue_render__ = function __vue_render__() {
         })], 2);
       }
     }], null, true)
-  }), _vm._v(" "), _c('portal', {
-    staticClass: "slotable",
-    attrs: {
-      "to": "event-details"
+  }), _vm._v(" "), _vm.showModal && _vm.activeItem ? _c('div', {
+    staticClass: "fixed top-0 left-0 w-full h-full",
+    staticStyle: {
+      "z-index": "99"
+    }
+  }, [_c('div', {
+    staticClass: "absolute top-0 left-0 w-full h-full",
+    staticStyle: {
+      "background": "rgba(0,0,0,6)"
     },
-    scopedSlots: _vm._u([{
-      key: "default",
-      fn: function fn(information) {
-        return _c('div', {
-          staticClass: "created-event"
-        }, [_vm._t("created-card", function () {
-          return [_c('h4', {
-            staticStyle: {
-              "margin-bottom": "5px"
-            }
-          }, [_vm._v(_vm._s(information.data))]), _vm._v(" "), _c('p', [_vm._v("\n                    " + _vm._s(information.start_time.substr(11, 5)) + " -\n                    " + _vm._s(information.end_time.substr(11, 5)) + "\n                ")])];
-        }, {
-          "event_information": information
-        })], 2);
-      }
-    }], null, true)
-  })], 1);
+    on: {
+      "click": _vm.show_modal
+    }
+  }), _vm._v(" "), _c('div', {
+    staticClass: "left-0 right-0 fixed mx-auto w-full",
+    staticStyle: {
+      "max-width": "600px",
+      "z-index": "99"
+    }
+  }, [_c('div', {
+    staticClass: "relative h-full"
+  }, [_c('calendar_active_item', {
+    attrs: {
+      "modal": _vm.activeItem
+    }
+  })], 1)])]) : _vm._e()], 1);
 };
-
 var __vue_staticRenderFns__ = [];
-/* style */
 
+/* style */
 var __vue_inject_styles__ = function __vue_inject_styles__(inject) {
   if (!inject) return;
-  inject("data-v-58fca21c_0", {
+  inject("data-v-440d0652_0", {
     source: "*{box-sizing:border-box}.kalendar-wrapper{font-family:-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\",\"Segoe UI Symbol\";min-height:1440px;--main-color:#ec4d3d;--weekend-color:#f7f7f7;--current-day-color:#fef4f4;--table-cell-border-color:#e5e5e5;--odd-cell-border-color:#e5e5e5;--hour-row-color:inherit;--dark:#212121;--lightg:#9e9e9e;--card-bgcolor:#4285f4;--card-color:white;--max-hours:10;--previous-events:#c6dafc;--previous-text-color:#727d8f}.kalendar-wrapper.gstyle{--hour-row-color:#212121;--main-color:#4285f4;--weekend-color:transparent;--current-day-color:transparent;--table-cell-border-color:#e0e0e0;--odd-cell-border-color:transparent;font-family:\"Google Sans\",Roboto,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Arial,sans-serif}.kalendar-wrapper.gstyle .week-navigator{background:#fff;border-bottom:none;padding:20px;color:rgba(0,0,0,.54)}.kalendar-wrapper.gstyle .week-navigator button{color:rgba(0,0,0,.54)}.kalendar-wrapper.gstyle .created-event,.kalendar-wrapper.gstyle .creating-event{background-color:var(--card-bgcolor);color:var(--card-color);text-shadow:none;border-left:none;border-radius:2px;opacity:1;border-bottom:solid 1px rgba(0,0,0,.03)}.kalendar-wrapper.gstyle .created-event>*,.kalendar-wrapper.gstyle .creating-event>*{text-shadow:none}.kalendar-wrapper.gstyle .is-past .created-event,.kalendar-wrapper.gstyle .is-past .creating-event{background-color:var(--previous-events);color:var(--previous-text-color)}.kalendar-wrapper.gstyle .created-event{width:96%}.kalendar-wrapper.gstyle .created-event .time{right:2px}.kalendar-wrapper.gstyle .sticky-top .days{margin-left:0;padding-left:55px}.kalendar-wrapper.gstyle .all-day{display:none}.kalendar-wrapper.gstyle ul.building-blocks.day-1 li.is-an-hour::before{content:\"\";position:absolute;bottom:-1px;left:-10px;width:10px;height:1px;background-color:var(--table-cell-border-color)}.kalendar-wrapper.gstyle .hours,.kalendar-wrapper.gstyle ul.building-blocks li{border-right:solid 1px var(--table-cell-border-color)}.kalendar-wrapper.gstyle .hours li{font-size:80%}.kalendar-wrapper.gstyle .hour-indicator-line>span.line{height:2px;background-color:#db4437}.kalendar-wrapper.gstyle .hour-indicator-line>span.line:before{content:\"\";width:12px;height:12px;display:block;background-color:#db4437;position:absolute;top:-1px;left:0;border-radius:100%}.kalendar-wrapper.gstyle .days{border-top:solid 1px var(--table-cell-border-color);position:relative}.kalendar-wrapper.gstyle .days:before{content:\"\";position:absolute;height:1px;width:55px;left:0;bottom:0;background-color:var(--table-cell-border-color)}.kalendar-wrapper.gstyle .day-indicator{display:flex;flex-direction:column;align-items:center;color:var(--dark);font-size:13px;padding-left:0;border-right:solid 1px var(--table-cell-border-color)}.kalendar-wrapper.gstyle .day-indicator>div{display:flex;flex-direction:column;align-items:center}.kalendar-wrapper.gstyle .day-indicator.is-before{color:#757575}.kalendar-wrapper.gstyle .day-indicator .number-date{margin-left:0;margin-right:0;order:2;font-size:25px;font-weight:500;width:46px;height:46px;border-radius:100%;align-items:center;justify-content:center;display:flex;margin-top:4px}.kalendar-wrapper.gstyle .day-indicator.today{border-bottom-color:var(--table-cell-border-color)}.kalendar-wrapper.gstyle .day-indicator.today:after{display:none}.kalendar-wrapper.gstyle .day-indicator.today .number-date{background-color:var(--main-color);color:#fff}.kalendar-wrapper.gstyle .day-indicator .letters-date{margin-left:0;margin-right:0;font-weight:500;text-transform:uppercase;font-size:11px}.kalendar-wrapper.gstyle .day-indicator:first-child{position:relative}.kalendar-wrapper.gstyle .day-indicator:first-child::before{content:\"\";position:absolute;left:-1px;top:0;width:1px;height:100%;background-color:var(--table-cell-border-color)}.kalendar-wrapper.gstyle .creating-event,.kalendar-wrapper.gstyle .popup-wrapper{box-shadow:0 6px 10px 0 rgba(0,0,0,.14),0 1px 18px 0 rgba(0,0,0,.12),0 3px 5px -1px rgba(0,0,0,.2);transition:opacity .1s linear}.kalendar-wrapper.non-desktop .building-blocks{pointer-events:none}.kalendar-wrapper.day-view .day-indicator{align-items:flex-start;text-align:center;padding-left:10px}.created-event,.creating-event{padding:4px 6px;cursor:default;word-break:break-word;height:100%;width:100%;font-size:14px}.created-event h4,.creating-event h4{font-weight:400}.creating-event{background-color:#34aadc;opacity:.9}.creating-event>*{text-shadow:0 0 7px rgba(0,0,0,.25)}.created-event{background-color:#bfecff;opacity:.74;border-left:solid 3px #34aadc;color:#1f6570}.week-navigator{display:flex;align-items:center;background:linear-gradient(#fdfdfd,#f9f9f9);border-bottom:solid 1px #ec4d3d;padding:10px 20px}.week-navigator .nav-wrapper{display:flex;align-items:center;justify-content:space-between;font-size:22px;width:25ch;max-width:30ch;margin:0 auto}.week-navigator .nav-wrapper span{white-space:nowrap}.week-navigator button{background:0 0;border:none;padding:0;display:inline-flex;margin:0 10px;color:#ec4d3d;align-items:center;font-size:14px;padding-bottom:5px}.kalendar-wrapper{background-color:#fff;min-width:300px}.no-scroll{overflow-y:hidden;max-height:100%}.hour-indicator-line{position:absolute;z-index:2;width:100%;height:10px;display:flex;align-items:center;pointer-events:none;user-select:none}.hour-indicator-line>span.line{background-color:var(--main-color);height:1px;display:block;flex:1}.hour-indicator-line>span.time-value{font-size:14px;width:48px;color:var(--main-color);font-weight:600;background-color:#fff}.hour-indicator-tooltip{position:absolute;z-index:0;background-color:var(--main-color);width:10px;height:10px;display:block;border-radius:100%;pointer-events:none;user-select:none}ul.kalendar-day li.kalendar-cell:last-child{display:none}.week-navigator-button{outline:0}.week-navigator-button:active svg,.week-navigator-button:hover svg{stroke:var(--main-color)}",
     map: undefined,
     media: undefined
   });
 };
 /* scoped */
-
-
 var __vue_scope_id__ = undefined;
 /* module identifier */
-
 var __vue_module_identifier__ = undefined;
 /* functional template */
-
 var __vue_is_functional_template__ = false;
 /* style inject SSR */
 
@@ -879,37 +1220,35 @@ var components = /*#__PURE__*/Object.freeze({
   Kalendar: __vue_component__
 });
 
+// install function executed by Vue.use()
 var install = function installKalendarVue(Vue) {
   if (install.installed) return;
   install.installed = true;
   Object.entries(components).forEach(function (_ref) {
     var _ref2 = _slicedToArray(_ref, 2),
-        componentName = _ref2[0],
-        component = _ref2[1];
-
+      componentName = _ref2[0],
+      component = _ref2[1];
     Vue.component(componentName, component);
   });
   Vue.prototype.$kalendar = {};
-}; // Create module definition for Vue.use()
+};
 
-
+// Create module definition for Vue.use()
 var plugin = {
   install: install
-}; // To auto-install when vue is found
+};
+
+// To auto-install when vue is found
 // eslint-disable-next-line no-redeclare
-
 /* global window, global */
-
 var GlobalVue = null;
-
 if (typeof window !== "undefined") {
   GlobalVue = window.Vue;
 } else if (typeof global !== "undefined") {
   GlobalVue = global.Vue;
 }
-
 if (GlobalVue) {
   GlobalVue.use(plugin);
-} // Default export is library as a whole, registered via Vue.use()
+}
 
-export { __vue_component__ as _, isToday as a, _objectSpread2 as b, cloneObject as c, normalizeComponent as d, createInjector as e, isBefore as f, getLocaleTime as g, getHourlessDate as h, isWeekend as i, addTimezoneInfo as j, plugin as p };
+export { __vue_component__ as _, isToday as a, _objectSpread2 as b, cloneObject as c, normalizeComponent as d, createInjector as e, isBefore as f, getLocaleTime as g, getHourlessDate as h, isWeekend as i, addTimezoneInfo as j, _asyncToGenerator as k, _regeneratorRuntime as l, plugin as p };

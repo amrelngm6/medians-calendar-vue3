@@ -34,6 +34,7 @@ import { cloneObject, getLocaleTime } from './utils.js';
 
 export default {
     props: [
+        'device',
         'creator',
         'index',
         'cellData',
@@ -75,9 +76,9 @@ export default {
             return Object.values(this.constructedEvents)
                 .flat()
                 .filter(event => {
-                    let cellDate = new Date(this.cellData.value);
-                    let eventStarts = new Date(event.start.value);
-                    let eventEnds = new Date(event.end.value);
+                    let cellDate = event ? new Date(this.cellData.value) : null;
+                    let eventStarts = event ? new Date(event.start.value) : null;
+                    let eventEnds = event ? new Date(event.end.value) : null;
                     return eventStarts < cellDate && eventEnds > cellDate;
                 });
         },
@@ -122,7 +123,7 @@ export default {
 
             // if overlap is set to false, prevent selection on top of
             // other events
-            console.log('Cell events:', this.cell_events.length);
+            this.log('Cell events:', this.cell_events.length);
             if (!overlap && this.cell_events.length > 0) return;
 
             // close any open popups in the whole kalendar instance
@@ -169,10 +170,10 @@ export default {
                 this.$emit('select', payload);
             }
         },
-        mouseUp() {
+        mouseUp() {            
             if (this.kalendar_options.read_only) return;
-            if (this.creator.creating) {
-                this.$emit('initiatePopup');
+            // if (this.creator.creating) {
+            this.$emit('initiatePopup');
             }
         },
         resetCreator() {
@@ -185,6 +186,15 @@ export default {
                 return (index + 1) % (60 / 10) === 0
             }
         },
+
+        show_modal(item = null){
+            this.$parent.show_modal(item);
+        },
+        log(data)
+        {
+            this.$parent.log(data);
+        },
+
     },
 };
 </script>

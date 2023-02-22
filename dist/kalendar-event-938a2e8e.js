@@ -1,4 +1,5 @@
-import { g as getLocaleTime, f as isBefore, j as addTimezoneInfo, d as __vue_normalize__, e as __vue_create_injector__ } from './index-76f1295f.js';
+import { g as getLocaleTime, f as isBefore, j as addTimezoneInfo, d as __vue_normalize__, e as __vue_create_injector__ } from './index-da933847.js';
+import 'axios';
 import 'vue';
 
 //
@@ -33,8 +34,8 @@ var script = {
     },
     distance: function distance() {
       if (!this.event) return;
-      var multiplier = this.kalendar_options.cell_height / 10; // 0.5 * multiplier for an offset so next cell is easily selected
-
+      var multiplier = this.kalendar_options.cell_height / 10;
+      // 0.5 * multiplier for an offset so next cell is easily selected
       return "".concat(this.event.distance * multiplier - 0.2 * multiplier, "px");
     },
     status: function status() {
@@ -42,11 +43,11 @@ var script = {
     },
     information: function information() {
       var _this$event = this.event,
-          start = _this$event.start,
-          end = _this$event.end,
-          data = _this$event.data,
-          id = _this$event.id,
-          key = _this$event.key;
+        start = _this$event.start,
+        end = _this$event.end,
+        data = _this$event.data,
+        id = _this$event.id,
+        key = _this$event.key;
       var payload = {
         start_time: addTimezoneInfo(start.value),
         end_time: addTimezoneInfo(end.value),
@@ -68,15 +69,12 @@ var script = {
 
 /* script */
 var __vue_script__ = script;
-/* template */
 
+/* template */
 var __vue_render__ = function __vue_render__() {
   var _vm = this;
-
   var _h = _vm.$createElement;
-
   var _c = _vm._self._c || _h;
-
   return _c('div', {
     ref: "kalendarEventRef-" + _vm.event.id,
     staticClass: "event-card",
@@ -119,10 +117,9 @@ var __vue_render__ = function __vue_render__() {
     }
   })], 1) : _vm._e()], 1);
 };
-
 var __vue_staticRenderFns__ = [];
-/* style */
 
+/* style */
 var __vue_inject_styles__ = function __vue_inject_styles__(inject) {
   if (!inject) return;
   inject("data-v-28ea5945_0", {
@@ -132,14 +129,10 @@ var __vue_inject_styles__ = function __vue_inject_styles__(inject) {
   });
 };
 /* scoped */
-
-
 var __vue_scope_id__ = undefined;
 /* module identifier */
-
 var __vue_module_identifier__ = undefined;
 /* functional template */
-
 var __vue_is_functional_template__ = false;
 /* style inject SSR */
 

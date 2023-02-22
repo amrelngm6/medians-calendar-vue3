@@ -6,11 +6,10 @@
           class="day-indicator"
           :key="index"
           v-for="(device, index) in devices || []"
-          :class="{ today: _isToday(days[0]), 'is-before': isDayBefore(days[0]) }"
         >
-          <div v-id="device">
-            <span class="letters-date" v-text="device.title" ></span>
-            <span class="number-date" v-text="device.id" ></span>
+          <div>
+            <span class="letters-date" v-text="device.title"></span>
+            <span class="number-date" v-text="device.id"></span>
           </div>
         </li>
       </ul>
@@ -18,8 +17,7 @@
         <span>All Day</span>
         <li
           :key="index"
-          v-for="(device, index) in devices || []"
-          :class="{ 'all-today': _isToday(days[0]), 'is-all-day': false }"
+          v-for="(date, index) in days || []"
           :style="`height:${kalendar_options.cell_height + 5}px`"
         ></li>
       </ul>
@@ -28,7 +26,7 @@
       <ul class="dummy-days">
         <li
           :key="index"
-          v-for="(device, index) in devices || []"
+          v-for="(device, index) in device || []"
           :style="`height:${kalendar_options.cell_height}px`"
         ></li>
       </ul>
@@ -55,12 +53,13 @@
         </div>
         <kalendar-days
           :day="days[0]"
+          :device="device"
           class="building-blocks"
           :class="`day-${index + 1}`"
-          :key="'day'+index"
-          v-for="(day, index) in devices"
+          :key="`device-${index}`"
+          v-for="(device, index) in devices"
           :passed-time="passedTime.distance"
-          :ref="'day'+index"
+          :ref="`device-${index}`"
         >
         </kalendar-days>
       </div>
@@ -131,8 +130,8 @@ export default {
   },
   methods: {
     _isToday(day) {
-      console.log(this.days)
-      console.log(day)
+      console.log(day);
+      console.log(this.days);
       return isToday(day);
     },
     updateAppointments({ id, data }) {
@@ -216,10 +215,26 @@ export default {
       this.$kalendar.closePopups = () => {
         let refs = this.days.map(day => day.value.slice(0, 10));
         refs.forEach(ref => {
-          this.$refs[ref][0].clearCreatingLeftovers();
+          this.$refs[ref] ? this.$refs[ref][0].clearCreatingLeftovers() : false;
         });
       };
-    }
+    },
+
+    show_modal(item = null){
+        this.inspecting = true;
+        this.$parent.show_modal(item);
+    },
+    log(data)
+    {
+        this.$parent.log(data);
+    },
+
+    async handleGetRequest(url) {
+
+        // Demo json data
+        return await this.$parent.handleRequest(url);
+    },
+
   }
 };
 </script>
