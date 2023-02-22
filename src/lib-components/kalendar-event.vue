@@ -10,6 +10,7 @@
       top: ${top_offset};
     `
         "
+        @click="inspecting = true"
         @mouseleave="inspecting = false"
         :class="{
             'is-past': isPast,
@@ -21,8 +22,6 @@
                 (event.distance > 10 && event.distance < 40) || overlaps > 1,
         }"
     >
-
-        
         <portal-target
             v-if="status === 'creating' || status === 'popup-initiated'"
             :slot-props="information"
@@ -35,23 +34,19 @@
             :slot-props="information"
             slim
         />
-        <!-- <div v-if="status === 'popup-initiated'" class="popup-wrapper">
+        <div v-if="status === 'popup-initiated'" class="popup-wrapper">
             <portal-target
                 name="event-popup-form"
                 slim
                 :slot-props="information"
             />
-        </div> -->
+        </div>
     </div>
 </template>
 <script>
 import { isBefore, getLocaleTime, addTimezoneInfo } from './utils.js';
 
 export default {
-
-    components: {
-        PortalEvent: () => import("./kalendar-event.vue")
-    },
     props: ['event', 'total', 'index', 'overlaps'],
     created() {},
     inject: ['kalendar_options'],
@@ -104,16 +99,6 @@ export default {
         closeEventPopup() {
             this.editing = false;
         },
-        
-        show_modal(item = null){
-            this.inspecting = true;
-            this.$parent.show_modal(item);
-        },
-        log(data)
-        {
-            this.$parent.log(data);
-        },
-
     },
 };
 </script>

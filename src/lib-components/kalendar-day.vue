@@ -24,21 +24,18 @@
         v-show="kalendar_options.style === 'material_design'"
       ></span>
     </div>
-    <div v-if="day_cells">
-      <kalendar-cell
-        v-for="(cell, index) in day_cells"
-        :constructed-events="day_events"
-        :key="`cell-${index}`"
-        :creator="creator"
-        :cell-data="cell"
-        :index="index"
-        :device="device"
-        @select="updateCreator"
-        @reset="resetEvents()"
-        @initiatePopup="initiatePopup()"
-        :temporary-event="temporary_event"
-      />
-    </div>
+    <kalendar-cell
+      v-for="(cell, index) in day_cells"
+      :constructed-events="day_events"
+      :key="`cell-${index}`"
+      :creator="creator"
+      :cell-data="cell"
+      :index="index"
+      @select="updateCreator"
+      @reset="resetEvents()"
+      @initiatePopup="initiatePopup()"
+      :temporary-event="temporary_event"
+    />
   </ul>
 </template>
 <script>
@@ -47,7 +44,7 @@ import { isToday, isWeekend, cloneObject, getLocaleTime } from "./utils";
 import myWorker from "@/lib-components/workers";
 
 export default {
-  props: ["day", "passedTime","device"],
+  props: ["day", "passedTime"],
   created() {
     // get and render day cells
     // and then render any event
@@ -69,7 +66,6 @@ export default {
   inject: ["kalendar_options"],
   mounted() {
     if (this.kalendar_options.scrollToNow && this.isToday) this.scrollView();
-    this.log(this.day);
   },
   computed: {
     isWeekend() {
@@ -147,7 +143,7 @@ export default {
             this.$set(this.day_events, key, [constructed_event]);
           }
           let events = this.$kalendar.getEvents();
-          this.log("Adding event to kalendar", payload);
+          console.log("Adding event to kalendar", payload);
           events.push({
             ...payload,
             id: constructed_event.id
@@ -183,14 +179,7 @@ export default {
       return null;
     },
     getDayEvents(events) {
-
-      // let clonedEvents = events.map(event => cloneObject(event));
-
-      let clonedEvents = [];
-      for (var i = events.length - 1; i >= 0; i--) {
-        clonedEvents[i] = cloneObject(events[i]);
-      }
-
+      let clonedEvents = events.map(event => cloneObject(event));
       return myWorker
         .send("constructDayEvents", {
           events: clonedEvents,
@@ -310,7 +299,6 @@ export default {
         distance: distance,
         status: "creating"
       };
-
     },
     initiatePopup() {
       if (this.creating && this.creator.status !== "creating") return;
@@ -325,13 +313,6 @@ export default {
         starting_cell,
         original_starting_cell
       } = this.creator;
-
-      this.log('Device')
-      this.log(this.device)
-      this.log(this.creator)
-      this.creator.device = this.device;
-      this.show_modal(this.creator.device);
-      
       let real_ending_cell_index = ending_cell.index + 1;
       ending_cell = this.day_cells[real_ending_cell_index];
 
@@ -356,11 +337,10 @@ export default {
           round_offset: null
         },
         distance: diffMins + diffInHrs * (this.kalendar_options.hourlySelection ? 10 : 60),
+        status: "popup-initiated"
       };
-    
 
-      let updated_events =  (starting_cell && starting_cell.value &&  this.day_events[starting_cell.value] )? this.day_events[starting_cell.value] : null;
-
+      let updated_events = this.day_events[starting_cell.value];
       if (!updated_events) updated_events = [];
       updated_events.push(finalEvent);
 
@@ -417,20 +397,11 @@ export default {
     },
     scrollView() {
       let topoffset = this.$refs.nowIndicator.offsetTop;
-      this.log("Scrolling to :", topoffset);
+      console.log("Scrolling to :", topoffset);
       setTimeout(() => {
         window.scroll({ top: topoffset, left: 0, behavior: "smooth" });
       }, 500);
-    },
-
-    show_modal(item = null){
-        this.$parent.show_modal(item);
-    },
-    log(data)
-    {
-        this.$parent.log(data);
-    },
-
+    }
   }
 };
 </script>

@@ -5,11 +5,16 @@
         <li
           class="day-indicator"
           :key="index"
-          v-for="(device, index) in devices || []"
+          v-for="({ value }, index) in devices || []"
+          :class="{ today: _isToday(days[0]), 'is-before': isDayBefore(days[0]) }"
         >
           <div>
-            <span class="letters-date" v-text="device.title"></span>
-            <span class="number-date" v-text="device.id"></span>
+            <span class="letters-date">{{
+              kalendar_options.formatDayTitle(days[0])[0]
+            }}</span>
+            <span class="number-date">{{
+              kalendar_options.formatDayTitle(days[0])[1]
+            }}</span>
           </div>
         </li>
       </ul>
@@ -17,7 +22,8 @@
         <span>All Day</span>
         <li
           :key="index"
-          v-for="(date, index) in days || []"
+          v-for="(day, index) in days || []"
+          :class="{ 'all-today': _isToday(days[0].value), 'is-all-day': false }"
           :style="`height:${kalendar_options.cell_height + 5}px`"
         ></li>
       </ul>
@@ -26,7 +32,7 @@
       <ul class="dummy-days">
         <li
           :key="index"
-          v-for="(device, index) in device || []"
+          v-for="(day, index) in devices || []"
           :style="`height:${kalendar_options.cell_height}px`"
         ></li>
       </ul>
@@ -53,13 +59,12 @@
         </div>
         <kalendar-days
           :day="days[0]"
-          :device="device"
           class="building-blocks"
           :class="`day-${index + 1}`"
-          :key="`device-${index}`"
+          :key="days[0].value.slice(0, 10)"
           v-for="(device, index) in devices"
           :passed-time="passedTime.distance"
-          :ref="`device-${index}`"
+          :ref="days[0].value.slice(0, 10)"
         >
         </kalendar-days>
       </div>
@@ -79,14 +84,18 @@ import {
 
 export default {
   props: {
+    // this provided array will be kept in sync
+    devices: {
+        required: true,
+        type: Array,
+        validator: function(val) {
+            return  Array.isArray(val) || typeof val === 'object';
+        },
+    },
     current_day: {
       required: true,
       type: String,
       validator: d => !isNaN(Date.parse(d)),
-    },
-    devices: {
-      required: false,
-      type: Array
     }
   },
   components: {
@@ -130,8 +139,6 @@ export default {
   },
   methods: {
     _isToday(day) {
-      console.log(day);
-      console.log(this.days);
       return isToday(day);
     },
     updateAppointments({ id, data }) {
@@ -215,26 +222,10 @@ export default {
       this.$kalendar.closePopups = () => {
         let refs = this.days.map(day => day.value.slice(0, 10));
         refs.forEach(ref => {
-          this.$refs[ref] ? this.$refs[ref][0].clearCreatingLeftovers() : false;
+          this.$refs[ref][0].clearCreatingLeftovers();
         });
       };
-    },
-
-    show_modal(item = null){
-        this.inspecting = true;
-        this.$parent.show_modal(item);
-    },
-    log(data)
-    {
-        this.$parent.log(data);
-    },
-
-    async handleGetRequest(url) {
-
-        // Demo json data
-        return await this.$parent.handleRequest(url);
-    },
-
+    }
   }
 };
 </script>

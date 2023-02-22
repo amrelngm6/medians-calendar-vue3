@@ -93,61 +93,12 @@
                 </button>
             </div>
         </div>
-        <kalendar-week-view :devices="devices" :current_day="current_day" />
-        <portal to="event-creation" class="slotable">
-            <div slot-scope="information" class="creating-event">
-                <slot name="creating-card" :event_information="information">
-                    <h4 class="appointment-title" style="text-align: left;">
-                        New Appointment
-                    </h4>
-                    <span class="time">
-                        {{ getTime(information.start_time) }}
-                        -
-                        {{ getTime(information.end_time) }}
-                    </span>
-                </slot>
-            </div>
-        </portal>
-        <portal to="event-popup-form" class="slotable">
-            <div slot-scope="information" class="popup-event">
-
-                
-                <slot name="popup-form" :popup_information="information">
-                
-                   <input
-                        v-model="activeItem.title"
-                        type="text"
-                        name="title"
-                        placeholder="Title"
-                        style="width: 100%;"
-                    />
-                    <div class="buttons">
-                        <button class="cancel" @click="closePopups()">
-                            Cancel
-                        </button>
-                        <button @click="addAppointment(information)">
-                            Save
-                        </button>
-                    </div>
-                </slot>
-            </div>
-        </portal>
-
-
-        <div v-if="showModal && activeItem" class="fixed top-0 left-0 w-full h-full"  style="z-index: 99;">
-            <div class="absolute top-0 left-0 w-full h-full" @click="show_modal" style="background: rgba(0,0,0,6);"></div>
-            <div class="left-0 right-0 fixed mx-auto w-full " style="max-width: 600px; z-index: 99;" >
-                <div class="relative h-full ">
-                    <calendar_active_item :modal="activeItem"></calendar_active_item>
-                </div>
-            </div>
-        </div>  
+        <kalendar-week-view :current_day="current_day" :devices="devices" />
 
     </div>
 </template>
 <script>
 import Vue from 'vue';
-const axios = require('axios').default;
 
 import {
     addDays,
@@ -164,11 +115,12 @@ export default {
         KalendarWeekView: () => import('./kalendar-weekview.vue'),
     },
     props: {
+        // this provided array will be kept in sync
         devices: {
             required: true,
             type: Array,
             validator: function(val) {
-                return Array.isArray(val);
+                return  Array.isArray(val) || typeof val === 'object';
             },
         },
         // this provided array will be kept in sync
@@ -191,7 +143,6 @@ export default {
     },
     data() {
         return {
-            showModal: false,
             current_day: getHourlessDate(),
             default_options: {
                 cell_height: 10,
@@ -229,13 +180,11 @@ export default {
                 },
                 formatDayNavigator: isoDate => {
                     let day = new Date(isoDate);
-                    this.log(day.toUTCString().slice(5, 16));
-                    this.log(day.toUTCString().slice(5, 11));
                     return day.toUTCString().slice(5, 11);
                 },
             },
             kalendar_events: null,
-            activeItem: {},
+            new_appointment: {},
             scrollable: true,
         };
     },
@@ -276,25 +225,31 @@ export default {
     },
     created() {
         this.current_day = this.kalendar_options.start_day;
-        this.loadEvents();
-        // this.kalendar_events = .events.map(event => ({
-        //     ...event,
-        //     id: event.id || generateUUID(),
-        // }));
+        this.kalendar_events = this.events.map(event => ({
+            ...event,
+            id: event.id || generateUUID(),
+        }));
 
         if (!this.$kalendar) {
             Vue.prototype.$kalendar = {};
         }
 
+        this.$kalendar.getEvents = () => this.kalendar_events.slice(0);
 
-        this.$kalendar.reloadEvents = () => this.loadEvents();
-
-        this.$kalendar.getEvents = () => this.kalendar_events;
-
-        this.$kalendar.updateEvents = () => this.loadEvents().kalendar_events;
-        
-
-
+        this.$kalendar.updateEvents = payload => {
+            this.kalendar_events = payload.map(event => ({
+                ...event,
+                id: event.id || generateUUID(),
+            }));
+            this.$emit(
+                'update:events',
+                payload.map(event => ({
+                    from: event.from,
+                    to: event.to,
+                    data: event.data,
+                }))
+            );
+        };
     },
     provide() {
         const provider = {};
@@ -309,21 +264,16 @@ export default {
         return provider;
     },
     methods: {
-        show_modal(item= null)
-        {
-            this.showModal = this.showModal ? false : true;
-            this.activeItem = item;
-        },
         getTime,
         changeDay(numDays) {
             this.current_day = addDays(this.current_day, numDays).toISOString();
-            setTimeout(() => this.loadEvents().$kalendar.buildWeek());
+            setTimeout(() => this.$kalendar.buildWeek());
         },
         addAppointment(popup_info) {
             let payload = {
                 data: {
-                    title: this.activeItem.title,
-                    description: this.activeItem.description,
+                    title: this.new_appointment.title,
+                    description: this.new_appointment.description,
                 },
                 from: popup_info.start_time,
                 to: popup_info.end_time,
@@ -334,7 +284,7 @@ export default {
             this.clearFormData();
         },
         clearFormData() {
-            this.activeItem = {
+            this.new_appointment = {
                 description: null,
                 title: null,
             };
@@ -342,61 +292,7 @@ export default {
         closePopups() {
             this.$kalendar.closePopups();
         },
-
-
-        /**
-         * Update event data
-         */
-        updateInfo(activeItem)
-        {
-            this.showModal = false; 
-            this.reloadEvents();
-            this.showModal = true
-
-            return this;
-        } ,
-
-        log(data)
-        {
-            this.$parent.log(data);
-        },
-
-        /**
-         * Load events 
-         */
-        async loadEvents()
-        {
-            return await this.handleGetRequest('/api/calendar_events?start='+this.current_day+'&end='+addDays(this.current_day, 1).toISOString()).then(response => {
-                this.log('response')
-                this.log(response)
-                this.kalendar_events = response;
-                return this;
-            });
-        } ,
-
-        async handleGetRequest(url) {
-
-            // Demo json data
-            return await axios.get(url).then(response => 
-            {
-                if (response.data)
-                    return response.data;
-                else 
-                    return response;
-            });
-        },
-
-        async handleRequest(params, url='/') {
-            return await this.$parent.handleRequest(params, url);
-        },
-        __(i)
-        {
-            return this.$parent.__(i);
-        },
-
     },
-
-
 };
 </script>
 <style lang="scss" src="./main.scss"></style>
