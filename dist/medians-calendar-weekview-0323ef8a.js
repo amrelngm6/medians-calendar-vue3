@@ -1,4 +1,4 @@
-import { i as isWeekend, a as isToday, c as cloneObject, g as getDistance, b as _objectSpread2, d as __vue_normalize__, e as __vue_create_injector__, f as _typeof, h as getTopDistance, j as getLocaleTime, k as isBefore, l as getHourlessDate } from './index-c1e9e377.js';
+import { i as isWeekend, a as isToday, c as cloneObject, g as getDistance, b as _objectSpread2, d as __vue_normalize__, e as __vue_create_injector__, f as _typeof, h as getTopDistance, j as getLocaleTime, k as isBefore, l as getHourlessDate } from './index-8177e2b2.js';
 import 'vue';
 
 function PromiseWorker (worker) {
@@ -115,14 +115,14 @@ var script = {
     this.renderDay();
   },
   components: {
-    medians_calendarCell: function medians_calendarCell() {
-      return import('./medians-calendar-cell-2c1f101b.js');
+    MediansCalendarCell: function MediansCalendarCell() {
+      return import('./medians-calendar-cell-7e413041.js');
     },
     MediansCalendarEvent: function MediansCalendarEvent() {
-      return import('./medians-calendar-event-6a9b1b32.js');
+      return import('./medians-calendar-event-b7390004.js');
     },
-    medians_calendarCellBg: function medians_calendarCellBg() {
-      return import('./medians-calendar-cell-bg-2e4386d5.js');
+    MediansCalendarCellBg: function MediansCalendarCellBg() {
+      return import('./medians-calendar-cell-bg-0b30c208.js');
     }
   },
   provide: function provide() {
@@ -401,7 +401,7 @@ var script = {
       var topoffset = this.passedTime;
       setTimeout(function () {
         var myElement = document.getElementById('now-indicator');
-        var topPos = myElement.offsetTop;
+        var topPos = myElement ? myElement.offsetTop : 10;
         document.getElementById('day-wrapper').scrollTop = topPos;
 
         // window.scroll({ top: topoffset, left: 0, behavior: "smooth" });
@@ -497,7 +497,7 @@ var __vue_staticRenderFns__ = [];
 /* style */
 var __vue_inject_styles__ = function __vue_inject_styles__(inject) {
   if (!inject) return;
-  inject("data-v-da6bc420_0", {
+  inject("data-v-0e51e388_0", {
     source: "ul.medians-calendar-day{position:relative;background-color:#fff}ul.medians-calendar-day.is-weekend{background-color:var(--weekend-color)}ul.medians-calendar-day.is-today{background-color:var(--current-day-color)}ul.medians-calendar-day .clear{position:absolute;z-index:1;top:-20px;right:0;font-size:10px}ul.medians-calendar-day.creating{z-index:11}ul.medians-calendar-day.creating .created-event{pointer-events:none}",
     map: undefined,
     media: undefined

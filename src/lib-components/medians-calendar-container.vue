@@ -97,7 +97,6 @@
 
         <medians-calendar-week-view :events="medians_calendar_events" v-if="showCalendar" :key="current_day" :current_day="current_day" :devices="devices" />
 
-            
 
         <div v-if="showPopup">
             <div v-if="showModal && activeItem && !activeItem.id" class="fixed top-0 left-0 w-full h-full"  style="z-index: 99;">
@@ -502,7 +501,7 @@ export default {
 
             let item = newitem ? newitem : this.activeItem;
 
-            let request_type = item.id ? 'update' : 'create';
+            let request_type = type.includes('create') ? 'update' : 'create';
 
             const params = new URLSearchParams([]);
             item.start_time = this.current_day+ ' ' +item.start

@@ -366,7 +366,7 @@ export default {
             let topoffset = this.passedTime;
             setTimeout(() => {
                 var myElement = document.getElementById('now-indicator');
-                var topPos = myElement.offsetTop;
+                var topPos = myElement ? myElement.offsetTop : 10;
                 document.getElementById('day-wrapper').scrollTop = topPos;
 
                 // window.scroll({ top: topoffset, left: 0, behavior: "smooth" });
