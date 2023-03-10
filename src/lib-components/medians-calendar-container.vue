@@ -501,7 +501,7 @@ export default {
 
             let item = newitem ? newitem : this.activeItem;
 
-            let request_type = type.includes('create') ? 'update' : 'create';
+            let request_type = type.includes('create') ? 'create' : 'update';
 
             const params = new URLSearchParams([]);
             item.start_time = this.current_day+ ' ' +item.start

@@ -29,7 +29,6 @@
         </div>
 
             <MediansCalendarEvent
-                :style="`z-index: 10`"
                 v-if="day_events && day_events.length && event  "
                 v-for="(event, eventIndex) in day_events"
                 :event="event"

@@ -1,4 +1,4 @@
-import { i as isWeekend, a as isToday, c as cloneObject, g as getDistance, b as _objectSpread2, d as __vue_normalize__, e as __vue_create_injector__, f as _typeof, h as getTopDistance, j as getLocaleTime, k as isBefore, l as getHourlessDate } from './index-8177e2b2.js';
+import { i as isWeekend, a as isToday, c as cloneObject, g as getDistance, b as _objectSpread2, d as __vue_normalize__, e as __vue_create_injector__, f as _typeof, h as getTopDistance, j as getLocaleTime, k as isBefore, l as getHourlessDate } from './index-321e778a.js';
 import 'vue';
 
 function PromiseWorker (worker) {
@@ -116,13 +116,13 @@ var script = {
   },
   components: {
     MediansCalendarCell: function MediansCalendarCell() {
-      return import('./medians-calendar-cell-7e413041.js');
+      return import('./medians-calendar-cell-d3950c67.js');
     },
     MediansCalendarEvent: function MediansCalendarEvent() {
-      return import('./medians-calendar-event-b7390004.js');
+      return import('./medians-calendar-event-1587ed05.js');
     },
     MediansCalendarCellBg: function MediansCalendarCellBg() {
-      return import('./medians-calendar-cell-bg-0b30c208.js');
+      return import('./medians-calendar-cell-bg-c35f0884.js');
     }
   },
   provide: function provide() {
@@ -477,7 +477,6 @@ var __vue_render__ = function __vue_render__() {
   }), 1), _vm._v(" "), _vm._l(_vm.day_events, function (event, eventIndex) {
     return _vm.day_events && _vm.day_events.length && event ? _c('MediansCalendarEvent', {
       key: eventIndex + _vm.device.id,
-      style: "z-index: 10",
       attrs: {
         "event": event,
         "total": _vm.day_events.length,
@@ -497,7 +496,7 @@ var __vue_staticRenderFns__ = [];
 /* style */
 var __vue_inject_styles__ = function __vue_inject_styles__(inject) {
   if (!inject) return;
-  inject("data-v-0e51e388_0", {
+  inject("data-v-c68c63ca_0", {
     source: "ul.medians-calendar-day{position:relative;background-color:#fff}ul.medians-calendar-day.is-weekend{background-color:var(--weekend-color)}ul.medians-calendar-day.is-today{background-color:var(--current-day-color)}ul.medians-calendar-day .clear{position:absolute;z-index:1;top:-20px;right:0;font-size:10px}ul.medians-calendar-day.creating{z-index:11}ul.medians-calendar-day.creating .created-event{pointer-events:none}",
     map: undefined,
     media: undefined

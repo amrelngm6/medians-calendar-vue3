@@ -9,6 +9,7 @@
           top: ${top_offset};
         `"
         :class="{
+            'canceled': event.status == 'canceled',
             'is-past': isPast,
             'is-past': isPast,
             overlaps: overlaps > 0,
@@ -101,9 +102,10 @@ export default {
     methods: {
         mouseUp()
         {
-            this.show_modal(this.event)
-        },
-        show_modal(item = null){
+            if (this.event.status == 'canceled')
+            {
+                this.$alert(this.$root.__('this_is_canceled_event'))
+            }
             this.$parent.show_modal(item);
         },
         log(data)
