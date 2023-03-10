@@ -321,7 +321,7 @@ export default {
     created() {
         this.current_day = this.kalendar_options.start_day;
         
-        // this.loadEvents();
+        this.loadEvents();
 
         if (!this.$kalendar) {
             Vue.prototype.$kalendar = {};

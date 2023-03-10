@@ -1,4 +1,4 @@
-import { j as getLocaleTime, c as cloneObject, b as _objectSpread2, d as __vue_normalize__, e as __vue_create_injector__ } from './index-ec325cf5.js';
+import { j as getLocaleTime, c as cloneObject, b as _objectSpread2, d as __vue_normalize__, e as __vue_create_injector__ } from './index-a72ca339.js';
 import 'vue';
 
 var script = {
@@ -12,7 +12,7 @@ var script = {
   inject: ['kalendar_options'],
   components: {
     KalendarEvent: function KalendarEvent() {
-      return import('./kalendar-event-961ce8ed.js');
+      return import('./kalendar-event-5128f203.js');
     }
   },
   computed: {},
