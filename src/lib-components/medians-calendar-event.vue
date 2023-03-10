@@ -106,7 +106,7 @@ export default {
             {
                 this.$alert(this.$root.__('this_is_canceled_event'))
             }
-            this.$parent.show_modal(item);
+            this.$parent.show_modal(this.event);
         },
         log(data)
         {
