@@ -99,8 +99,10 @@ const getDayCells = (dayString, day_options, hourlySelection) => {
   for (let hourIdx = 0; hourIdx < all_hours.length; hourIdx++) {
     let hour = all_hours[hourIdx];
     let value = `${date_part}T${hour}.000Z`;
+    let time = `${date_part} ${hour}`;
     cells.push({
       value,
+      time,
       index: hourIdx,
       visible: true
     });

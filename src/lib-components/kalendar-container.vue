@@ -1,6 +1,7 @@
 <template>
     <div
-        class="kalendar-wrapper"
+        class="kalendar-wrapper px-2 "
+        id="calendar_wrapper"
         :class="{
             'no-scroll': !scrollable,
             gstyle: kalendar_options.style === 'material_design',
@@ -9,7 +10,7 @@
         @touchstart="scrollable = false"
         @touchend="scrollable = true"
     >
-        <div class="week-navigator">
+        <div class="week-navigator" style="direction:ltr;">
             <div
                 class="nav-wrapper"
                 v-if="kalendar_options.view_type === 'week'"
@@ -93,14 +94,97 @@
                 </button>
             </div>
         </div>
-        <kalendar-week-view :current_day="current_day" :devices="devices" />
 
+        <kalendar-week-view :events="kalendar_events" v-if="showCalendar" :key="current_day" :current_day="current_day" :devices="devices" />
+
+        <portal to="event-details" class="slotable">
+            <div slot-scope="information" >
+                <slot name="created-card" :event_information="information">
+
+                    <div class="absolute top-4 right-2 flex gap gap-2 font-semibold text-xs">
+                        <span v-text="information.start_time"></span>
+                        <span v-text="information.end_time"></span>
+                    </div>
+                    <div  >
+                        <span class="w-full block pb-2 text-left" style="direction: ltr;">
+                            <img v-if="information.game" :src="information.game.picture" class="rounded-full w-8 h-8 mb-2" />
+                            <span class='font-xxs font-semibold text-left w-full' v-text="information.title"></span>
+                        </span>
+
+                    </div>
+
+                </slot>
+            </div>
+        </portal>
+
+        <portal to="event-popup-form" class="slotable">
+            <div slot-scope="information" class="created-event">
+                <slot name="created-card" :event_information="information">
+                    <h4 style="margin-bottom: 5px">{{ information.title }}</h4>
+                </slot>
+            </div>
+        </portal>
+            
+
+        <div v-if="showPopup">
+            <div v-if="showModal && activeItem && !activeItem.id" class="fixed top-0 left-0 w-full h-full"  style="z-index: 99;">
+                <div class="absolute top-0 left-0 w-full h-full" @click="hidePopup" style="background: rgba(0,0,0,.6);"></div>
+                <div class="left-0 right-0 fixed mx-auto w-full " style="max-width: 600px; z-index: 99;" >
+                    <div class="relative h-full ">
+                        <calendar_new_item :modal="activeItem" :games="activeItem.device ? activeItem.device.games : []"></calendar_new_item>
+                    </div>
+                </div>
+            </div>  
+
+            <div v-if="showModal && activeItem && activeItem.id" class="fixed top-0 left-0 w-full h-full"  style="z-index: 99;">
+                <div class="absolute top-0 left-0 w-full h-full" @click="hidePopup" style="background: rgba(0,0,0,.6);"></div>
+                <div class="left-0 right-0 fixed mx-auto w-full " style="max-width: 600px; z-index: 99;" >
+                    <div class="relative h-full ">
+
+                        <!-- Confirm overlay -->
+                        <div class="top-20 relative mx-auto w-full bg-white p-6 rounded-lg" style="max-width: 600px; z-index: 99;" v-if="showConfirm">
+                            
+                            <div class="bg-blue-200 rounded-md py-2 px-4" role="alert">
+                                <strong v-text="__('confirm')"></strong> <span v-text="__('confirm_complete_booking')"></span> 
+                                <button @click="showConfirm = false" type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+
+                            <div  class="my-2 cursor-pointer w-full text-white  font-semibold py-2 border-b border-gray-200">
+                                <label @click="activeItem.status = 'completed'; submit('Event.update', activeItem)" class="w-32 mx-auto py-2 rounded-lg bg-gradient-primary block text-center cursor-pointer" v-text="__('confirm')"></label>
+                            </div>
+
+                        </div>
+                        
+                        <calendar_active_item :modal="activeItem"></calendar_active_item>
+                    </div>
+                </div>
+            </div>  
+
+            <div v-if="showBooking && activeItem" class="fixed top-0 left-0 w-full h-full"  style="z-index: 99;">
+                <div class="absolute top-0 left-0 w-full h-full" @click="hidePopup" style="background: rgba(0,0,0,.6);"></div>
+                <div class="left-0 right-0 fixed mx-auto w-full " style="max-width: 600px; z-index: 99;" >
+                    <div class="relative h-full ">
+                        <calendar_modal :modal="activeItem"></calendar_modal>
+                    </div>
+                </div>
+            </div>  
+        </div>
+
+        <div class="w-full h-full fixed top-0 left-0" v-if="showCart" style="z-index:999">
+            
+            <div v-if="showCart" @click="showCart = false ; hidePopup" class="fixed h-full w-full top-0 left-0 bg-gray-800" style="opacity: .6; z-index:9"></div>
+
+            <side_cart  v-if="showCart" ref="side_cart" :setting="settings" :currency="settings.currency"></side_cart>
+
+        </div>
     </div>
 </template>
 <script>
 import Vue from 'vue';
 
 import {
+    cloneObject,
+    addMinutes,
     addDays,
     getTime,
     endOfWeek,
@@ -123,14 +207,13 @@ export default {
                 return  Array.isArray(val) || typeof val === 'object';
             },
         },
+        
         // this provided array will be kept in sync
-        events: {
-            required: true,
-            type: Array,
-            validator: function(val) {
-                return Array.isArray(val);
-            },
+        settings: {
+            required: false,
+            type: Array | Object,
         },
+        
         // use this to enable/disable stuff which
         // are supported by Kalendar itself
         configuration: {
@@ -143,6 +226,14 @@ export default {
     },
     data() {
         return {
+            showCalendar: true,
+            showPopup:false,
+            showModal:false,
+            showCart:false,
+            showConfirm:false,
+            showBooking:false,
+            activeItem:{},
+            events:[],
             current_day: getHourlessDate(),
             default_options: {
                 cell_height: 10,
@@ -159,6 +250,8 @@ export default {
                 time_mode: 'relative',
                 overlap: true,
                 past_event_creation: true,
+                column_minwidth: 200,
+                animation_speed: 200,
                 formatLeftHours: date => {
                     return getDatelessHour(
                         date,
@@ -211,6 +304,8 @@ export default {
                     Array.isArray(val) && !val.find(n => typeof n !== 'number'),
                 overlap: val => typeof val === 'boolean',
                 past_event_creation: val => typeof val === 'boolean',
+                column_minwidth: val => typeof val === 'number',
+                animation_speed: val => typeof val === 'number',
             };
             for (let key in provided_props) {
                 if (
@@ -225,31 +320,16 @@ export default {
     },
     created() {
         this.current_day = this.kalendar_options.start_day;
-        this.kalendar_events = this.events.map(event => ({
-            ...event,
-            id: event.id || generateUUID(),
-        }));
+        
+        // this.loadEvents();
 
         if (!this.$kalendar) {
             Vue.prototype.$kalendar = {};
         }
 
-        this.$kalendar.getEvents = () => this.kalendar_events.slice(0);
+        this.$kalendar.getEvents = () => this.kalendar_events;
 
-        this.$kalendar.updateEvents = payload => {
-            this.kalendar_events = payload.map(event => ({
-                ...event,
-                id: event.id || generateUUID(),
-            }));
-            this.$emit(
-                'update:events',
-                payload.map(event => ({
-                    from: event.from,
-                    to: event.to,
-                    data: event.data,
-                }))
-            );
-        };
+        this.$kalendar.updateEvents = payload => this.loadEvents();
     },
     provide() {
         const provider = {};
@@ -267,7 +347,7 @@ export default {
         getTime,
         changeDay(numDays) {
             this.current_day = addDays(this.current_day, numDays).toISOString();
-            setTimeout(() => this.$kalendar.buildWeek());
+            setTimeout(() => this.reloadEvents());
         },
         addAppointment(popup_info) {
             let payload = {
@@ -279,7 +359,6 @@ export default {
                 to: popup_info.end_time,
             };
 
-            this.$kalendar.addNewEvent(payload);
             this.$kalendar.closePopups();
             this.clearFormData();
         },
@@ -292,6 +371,225 @@ export default {
         closePopups() {
             this.$kalendar.closePopups();
         },
+
+        addToCart(activeItem)
+        {
+            let item = {};
+            this.showCart = true;
+            if (activeItem)
+            {
+                item.id = activeItem.id;
+                item.device = activeItem.device;
+                item.price = activeItem.price;
+                item.duration_time = activeItem.duration_time;
+                item.duration_hours = activeItem.duration_hours;
+                item.subtotal = activeItem.subtotal;
+                item.game = activeItem.game;
+                item.products = activeItem.products;
+            }
+            // this.$refs.side_cart.showCart = true
+            // this.$parent.showSide = false;
+            this.hidePopup(false);
+            var t = this;
+
+            setTimeout(function () {
+                t.$refs.side_cart ? t.$refs.side_cart.addToCart(item) : null;
+            }, 1000)
+        },
+        /**
+         * Update event data
+         */
+        updateInfo(activeItem)
+        {
+            this.showPopup = false; 
+            this.showPopup = true
+
+            return this;
+        } ,
+
+        log(data)
+        {
+            this.$parent.log(data);
+        },
+
+        show_modal(item = null){
+            this.showPopup = false; 
+            if (item)
+            {
+                if (item.id && item.status && item.status == 'active')
+                    this.setActiveItem(item);
+
+                if (item.status && item.status == 'completed')
+                    this.show_event(item);
+
+                if (item.status && item.status == 'paid')
+                    this.show_event(item);
+
+                if (!item.id)
+                    this.setNewItem(item);
+            }
+
+            this.showPopup = true; 
+
+        },
+
+        show_event(item = null){
+            this.showModal = false;
+            this.setEvent(item);
+            this.showBooking = true;
+        },
+
+        addTime(time, minutes = 0)
+        {
+            return addMinutes(new Date(time), minutes);
+        },
+        dateTime(date)
+        {
+            let d = new Date(date).toISOString();
+            var datestring = (d.slice(11, 16));
+            return datestring;
+        },
+        dateText(date)
+        {
+            let d = new Date(date).toISOString();
+            var datestring = d.slice(0, 10);
+            return datestring;
+        },
+
+        /** 
+         * Set active item
+         * 
+         */
+        setNewItem(newEvenet)
+        {
+            if (newEvenet.ending_cell.value === newEvenet.starting_cell.value)
+            {
+                let d = this.addTime(newEvenet.ending_cell.value, 60);
+                newEvenet.ending_cell.value = this.dateText(d)+'T'+this.dateTime(d)+':00.000Z';
+            }
+
+            this.activeItem = cloneObject(newEvenet)
+            this.games = newEvenet.device ? newEvenet.device.games : []
+            this.activeItem.device_id = newEvenet.device ? newEvenet.device.id : 0
+            this.activeItem.start = newEvenet.starting_cell ? this.dateTime(newEvenet.starting_cell.value) : null
+            this.activeItem.start_time = newEvenet.starting_cell ? newEvenet.starting_cell.time  : null
+            this.activeItem.end = newEvenet.ending_cell ? this.dateTime(newEvenet.ending_cell.value)  : null
+            this.activeItem.end_time = newEvenet.ending_cell ? newEvenet.ending_cell.time  : null
+            this.activeItem.date = newEvenet.starting_cell ? this.dateText(newEvenet.starting_cell.value)  : null
+            this.activeItem.booking_type = 'single'
+            this.showModal = true
+            return this;
+        },
+
+
+        /** 
+         * Set active item
+         * '
+         */
+        setActiveItem(props)
+        {
+            this.activeItem = cloneObject(props)
+            this.games = props.device ? props.device.games : []
+            this.activeItem.startStr = props.start
+            this.activeItem.start = props.starting_cell ? this.dateTime(props.starting_cell.value) : null
+            this.activeItem.start_time = props.starting_cell ? props.starting_cell.time  : null
+            this.activeItem.end = props.ending_cell ? this.dateTime(props.ending_cell.value)  : null
+            this.activeItem.end_time = props.ending_cell ? props.ending_cell.time  : null
+            this.activeItem.date = props.starting_cell ? this.dateText(props.starting_cell.value)  : null
+            this.activeItem.subtotal = this.subtotal();
+            this.showModal = true
+            return this;
+        },
+
+
+        /** 
+         * Set active item
+         * '
+         */
+        setEvent(props)
+        {
+            this.activeItem = cloneObject(props)
+            this.activeItem.startStr = props.start
+            this.activeItem.subtotal = this.subtotal();
+            this.showModal = true
+            return this;
+        },
+
+        /**
+         * Update event data
+         */
+        storeInfo(activeItem)
+        {
+            this.submit('Event.create', activeItem)
+        } ,
+        /**
+         * Update event data
+         */
+        submit(type, newitem = null) {
+
+            let item = newitem ? newitem : this.activeItem;
+
+            let request_type = item.id ? 'update' : 'create';
+
+            const params = new URLSearchParams([]);
+            item.start_time = this.current_day+ ' ' +item.start
+            item.end_time = this.current_day+ ' ' +item.end
+            params.append('type', type);
+            params.append('params[event]', JSON.stringify(item));
+            this.handleRequest(params, '/api/'+request_type).then(data => { 
+                this.hidePopup();
+            });
+        },
+
+        subtotal()
+        {
+            let price = this.activeItem.device_cost;
+
+            return (Number(price) * Number(this.activeItem.duration_hours)).toFixed(2) ;
+        },
+        hidePopup(reload = true)
+        {
+            this.showBooking = false;
+            this.showModal = false;
+            this.showConfirm = false;
+            if (reload){
+                this.reloadEvents();
+            }
+
+        },
+
+        async reloadEvents()
+        {
+            this.showCalendar = false
+            return await this.loadEvents().then(response=>{
+                this.showCalendar = true
+            });
+        },
+        /**
+         * Load events 
+         */
+        async loadEvents()
+        {
+            return await this.handleGetRequest('/api/calendar_events?start='+this.current_day+'&end='+addDays(this.current_day, 1).toISOString()).then(response => {
+                this.kalendar_events = response;
+                return this;
+            });
+        } ,
+
+        async handleGetRequest(url) {
+
+            // Demo json data
+            return await this.$parent.handleGetRequest(url);
+        },
+
+        async handleRequest(params, url='/') {
+            return await this.$parent.handleRequest(params, url);
+        },
+        __(i)
+        {
+            return this.$parent.__(i);
+        },
+
     },
 };
 </script>

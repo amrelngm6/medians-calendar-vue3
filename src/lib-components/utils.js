@@ -137,8 +137,9 @@ const addTimezoneInfo = ISOdate => {
 
 const isToday = date => {
   if (!date) return;
+  let newDate =  date.value ? date.value  : date;
   let today = getLocaleTime(new Date()).slice(0, 10);
-  return date.slice(0, 10) === today;
+  return newDate.slice(0, 10) === today;
 };
 
 const isBefore = (date1, date2) => {
@@ -160,6 +161,42 @@ const formatAMPM = date => {
   return result;
 };
 
+
+const dateTime = (date) => { 
+
+    let d = new Date(date).toISOString();
+    var datestring = (d.slice(11, 16));
+    return datestring;
+};
+
+const dateText = (date) =>
+{
+    let d = new Date(date).toISOString();
+    var datestring = d.slice(0, 10);
+    return datestring;
+};
+const getDistance = (event, hourlySelection = false) => {
+
+  let diffInMs = new Date(event.end) - new Date(event.start);
+  let diffInHrs = Math.floor((diffInMs % 86400000) / 3600000);
+  let diffMins = Math.round(((diffInMs % 86400000) % 3600000) / 60000);
+  let startDate = new Date(event.start);
+  let endDate = new Date(event.end);
+  let distance = diffMins + diffInHrs * (hourlySelection ? 10 : 60);
+
+  return distance;
+};
+
+
+const getTopDistance = start => {
+
+  let date = new Date(start);
+  let diffInHrs = Math.floor((date % 86400000) / 3600000);
+  let distance = Math.round(((date % 86400000) % 3600000) / 60000);
+  return (date.getMinutes() + (date.getHours() * 60));
+};
+
+
 export {
   addDays,
   addMinutes,
@@ -179,4 +216,9 @@ export {
   isWeekend,
   formatAMPM,
   getTime,
+  getDistance,
+  getTopDistance,
+  dateTime,
+  dateText,
+
 };

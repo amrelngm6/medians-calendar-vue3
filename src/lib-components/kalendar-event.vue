@@ -1,18 +1,15 @@
 <template>
     <div
-        class="event-card"
+        v-if="event"
+        class="right-0 left-0 mx-auto event-card cursor-pointer"
         :ref="`kalendarEventRef-${event.id}`"
-        :style="
-            `
-      height: ${distance}; 
-      width: calc(${width_value}); 
-      left: calc(${left_offset});
-      top: ${top_offset};
-    `
-        "
-        @click="inspecting = true"
-        @mouseleave="inspecting = false"
+        :style="`
+          height: ${distance}; 
+          width: ${width_value}; 
+          top: ${top_offset};
+        `"
         :class="{
+            'is-past': isPast,
             'is-past': isPast,
             overlaps: overlaps > 0,
             'two-in-one': total > 1,
@@ -21,36 +18,35 @@
             'event-card__small':
                 (event.distance > 10 && event.distance < 40) || overlaps > 1,
         }"
+        :id="'event-'+index"
+        @mouseup="mouseUp"
     >
-        <portal-target
-            v-if="status === 'creating' || status === 'popup-initiated'"
-            :slot-props="information"
-            name="event-creation"
-            slim
-        />
-        <portal-target
-            v-else
-            name="event-details"
-            :slot-props="information"
-            slim
-        />
-        <div v-if="status === 'popup-initiated'" class="popup-wrapper">
+
+        <div :class="event.classes" :key="`opacity${opacity}`" :style="`opacity:${opacity}`" class="animated fadeIn rounded-lg px-2 py-3">
             <portal-target
-                name="event-popup-form"
+                name="event-details"
+                :slot-props="event"
                 slim
-                :slot-props="information"
             />
         </div>
+
     </div>
+
 </template>
 <script>
-import { isBefore, getLocaleTime, addTimezoneInfo } from './utils.js';
+import { isBefore, getLocaleTime, addTimezoneInfo , getTopDistance } from './utils.js';
 
 export default {
-    props: ['event', 'total', 'index', 'overlaps'],
-    created() {},
+    props: ['event', 'total', 'index', 'overlaps','column_index'],
+    mounted() {
+        let t = this;
+        setTimeout(function () {
+            jQuery('#event-'+t.index+' > .animated').css('opacity', 1)
+        }, this.column_index * this.kalendar_options.animation_speed)
+    },
     inject: ['kalendar_options'],
     data: () => ({
+        opacity: 0,
         inspecting: false,
         editing: false,
     }),
@@ -60,16 +56,16 @@ export default {
             return isBefore(this.event.start.value, now);
         },
         width_value() {
-            return `${100 / this.total}% - ${(this.overlaps * 50) /
-                this.total}px`;
+            return `calc(100% - 10px)`;
         },
         left_offset() {
-            return `(${this.index} * (${this.width_value})) + ${this.overlaps *
-                50}px`;
+            return `10px`;
         },
         top_offset() {
-            return this.event.start.round_offset
-                ? `${this.event.start.round_offset}px`
+
+            let topDistance = getTopDistance(this.event.from,  this.kalendar_options.hourlySelection)
+            return topDistance > 0
+                ? `${(topDistance/10) * this.kalendar_options.cell_height}px`
                 : `0px`;
         },
         distance() {
@@ -84,12 +80,13 @@ export default {
         information() {
             let { start, end, data, id, key } = this.event;
             let payload = {
-                start_time: addTimezoneInfo(start.value),
-                end_time: addTimezoneInfo(end.value),
+                start_time: addTimezoneInfo(start),
+                end_time: addTimezoneInfo(end),
                 kalendar_id: id,
                 key,
                 data,
             };
+
             return payload;
         },
         editEvent() {
@@ -99,7 +96,21 @@ export default {
         closeEventPopup() {
             this.editing = false;
         },
+
     },
+    methods: {
+        mouseUp()
+        {
+            this.show_modal(this.event)
+        },
+        show_modal(item = null){
+            this.$parent.show_modal(item);
+        },
+        log(data)
+        {
+            this.$parent.log(data);
+        },
+    }
 };
 </script>
 <style lang="scss">
@@ -174,7 +185,6 @@ $creator-content: white;
     }
 
     position: absolute;
-    pointer-events: none;
     top: 0;
     left: 0;
     right: 0;
@@ -277,4 +287,11 @@ ul:last-child .popup-wrapper {
     width: calc(100% - 10px);
     top: 10px;
 }
+</style>
+<style lang="css">
+    .animated
+    {
+        opacity: 0;
+        transition: all .5s ease-in-out;
+    }
 </style>

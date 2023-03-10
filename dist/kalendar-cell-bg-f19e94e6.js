@@ -1,55 +1,21 @@
-import { g as getLocaleTime, c as cloneObject, b as _objectSpread2, d as __vue_normalize__, e as __vue_create_injector__ } from './index-da933847.js';
-import 'axios';
+import { j as getLocaleTime, c as cloneObject, b as _objectSpread2, d as __vue_normalize__, e as __vue_create_injector__ } from './index-ec325cf5.js';
 import 'vue';
 
 var script = {
-  props: ['creator', 'index', 'cellData', 'constructedEvents', 'temporaryEvent'],
+  date: function date() {
+    return {
+      showBgSelect: false,
+      showBgHover: false
+    };
+  },
+  props: ['device', 'creator', 'index', 'cellData', 'constructedEvents', 'temporaryEvent'],
   inject: ['kalendar_options'],
   components: {
     KalendarEvent: function KalendarEvent() {
-      return import('./kalendar-event-938a2e8e.js');
+      return import('./kalendar-event-961ce8ed.js');
     }
   },
-  computed: {
-    cell_events: function cell_events() {
-      var all_events = [];
-      if (this.completed_events) {
-        all_events = all_events.concat(this.completed_events);
-      }
-      if (this.being_created) {
-        all_events = all_events.concat(this.being_created);
-      }
-      return all_events;
-    },
-    completed_events: function completed_events() {
-      return this.constructedEvents && this.constructedEvents.hasOwnProperty(this.cellData.value) && this.constructedEvents[this.cellData.value];
-    },
-    being_created: function being_created() {
-      return this.temporaryEvent && this.temporaryEvent.start.value === this.cellData.value && this.temporaryEvent;
-    },
-    overlappingEvents: function overlappingEvents() {
-      var _this = this;
-      if (!this.constructedEvents || this.cell_events.length < 1) return [];
-      return Object.values(this.constructedEvents).flat().filter(function (event) {
-        var cellDate = new Date(_this.cellData.value);
-        var eventStarts = new Date(event.start.value);
-        var eventEnds = new Date(event.end.value);
-        return eventStarts < cellDate && eventEnds > cellDate;
-      });
-    },
-    overlapValue: function overlapValue() {
-      var length = this.overlappingEvents.length;
-      return length > 2 ? 2 : length;
-    },
-    selected: function selected() {
-      return this.cell_events && this.cell_events.length > 0;
-    },
-    hasPopups: function hasPopups() {
-      return this.selected && !!this.cell_events.find(function (ev) {
-        return ev.status === 'popup-initiated';
-      });
-    }
-  },
+  computed: {},
   methods: {
     mouseDown: function mouseDown() {
       // user mouse got depressed while outside kalendar-cells
@@ -76,7 +42,6 @@ var script = {
 
       // if overlap is set to false, prevent selection on top of
       // other events
-      if (!overlap && this.cell_events.length > 0) return;
 
       // close any open popups in the whole kalendar instance
       // before starting a new one
@@ -120,10 +85,8 @@ var script = {
       }
     },
     mouseUp: function mouseUp() {
-      if (this.kalendar_options.read_only) return;
-      if (this.creator.creating) {
-        this.$emit('initiatePopup');
-      }
+      this.showBgSelect = false;
+      this.$emit('initiatePopup');
     },
     resetCreator: function resetCreator() {
       this.$emit('reset');
@@ -134,6 +97,13 @@ var script = {
       } else {
         return (index + 1) % (60 / 10) === 0;
       }
+    },
+    show_modal: function show_modal() {
+      var item = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
+      this.$parent.show_modal(item);
+    },
+    log: function log(data) {
+      this.$parent.log(data);
     }
   }
 };
@@ -146,21 +116,27 @@ var __vue_render__ = function __vue_render__() {
   var _vm = this;
   var _h = _vm.$createElement;
   var _c = _vm._self._c || _h;
-  return _vm.cellData.visible ? _c('li', {
-    staticClass: "kalendar-cell",
+  return _vm.cellData.visible ? _c('div', {
+    staticClass: "text-xs hover:text-gray-600 border-gray-100 hover:bg-gray-100 border kalendar-cell-bg rounded relative cell-bg",
     class: {
-      selected: _vm.selected,
+      // selected: selected,
       'is-an-hour': _vm.isAnHour(_vm.index),
-      'has-events': _vm.cell_events && _vm.cell_events.length > 0,
-      'being-created': !!_vm.being_created || _vm.hasPopups
+      'bg-gray-200': _vm.showBgHover,
+      'bg-blue-200': _vm.showBgSelect
+      // 'being-created': !!being_created || hasPopups,
     },
     style: "\n  height: " + _vm.kalendar_options.cell_height + "px;\n",
     on: {
-      "mouseover": function mouseover($event) {
+      "mouseover": [function ($event) {
+        _vm.showBgHover = true;
+      }, function ($event) {
         if ($event.target !== $event.currentTarget) {
           return null;
         }
         return _vm.mouseMove();
+      }],
+      "mouseout": function mouseout($event) {
+        _vm.showBgHover = false;
       },
       "mousedown": function mousedown($event) {
         if ($event.target !== $event.currentTarget) {
@@ -172,26 +148,23 @@ var __vue_render__ = function __vue_render__() {
         return _vm.mouseUp();
       }
     }
-  }, _vm._l(_vm.cell_events, function (event, eventIndex) {
-    return _vm.cell_events && _vm.cell_events.length ? _c('KalendarEvent', {
-      key: eventIndex,
-      style: "z-index: 10",
-      attrs: {
-        "event": event,
-        "total": _vm.cell_events.length,
-        "index": eventIndex,
-        "overlaps": _vm.overlapValue
-      }
-    }) : _vm._e();
-  }), 1) : _vm._e();
+  }, [_vm.cellData.value ? _c('div', {
+    staticStyle: {
+      "pointer-events": "none"
+    }
+  }, [_c('div', {
+    domProps: {
+      "textContent": _vm._s(_vm.cellData.value.slice(11, 16))
+    }
+  })]) : _vm._e()]) : _vm._e();
 };
 var __vue_staticRenderFns__ = [];
 
 /* style */
 var __vue_inject_styles__ = function __vue_inject_styles__(inject) {
   if (!inject) return;
-  inject("data-v-43f6a2ab_0", {
-    source: "li{font-size:13px;position:relative}.created-events{height:100%}ul.building-blocks li{z-index:0;border-bottom:dotted 1px var(--odd-cell-border-color)}ul.building-blocks li.first_of_appointment{z-index:1;opacity:1}ul.building-blocks li.is-an-hour{border-bottom:solid 1px var(--table-cell-border-color)}ul.building-blocks li.has-events{z-index:unset}ul.building-blocks li.being-created{z-index:11}",
+  inject("data-v-e65101a8_0", {
+    source: "li{font-size:13px;position:relative}.created-events{height:100%}.cell-bg div{display:none}.cell-bg:active div,.cell-bg:hover div{display:block}ul.building-blocks li{z-index:0;border-bottom:dotted 1px var(--odd-cell-border-color)}ul.building-blocks li.first_of_appointment{z-index:1;opacity:1}ul.building-blocks li.is-an-hour{border-bottom:solid 1px var(--table-cell-border-color)}ul.building-blocks li.has-events{z-index:unset}ul.building-blocks li.being-created{z-index:11}",
     map: undefined,
     media: undefined
   });

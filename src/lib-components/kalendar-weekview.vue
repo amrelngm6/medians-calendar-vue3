@@ -1,19 +1,19 @@
 <template>
   <div class="calendar-wrap" :style="`--space-between-cols: ${colsSpace}`">
-    <div class="sticky-top">
+    <div class="sticky-top"  v-if="devices && days">
       <ul class="days">
         <li
           class="day-indicator"
           :key="index"
-          v-for="({ value }, index) in devices || []"
-          :class="{ today: _isToday(days[0]), 'is-before': isDayBefore(days[0]) }"
+          v-for="(device, index) in devices || []"
+          :class="{ today: _isToday(current_day), 'is-before': isDayBefore(current_day) }"
         >
-          <div>
+          <div v-if="device" class="w-full">
             <span class="letters-date">{{
-              kalendar_options.formatDayTitle(days[0])[0]
+              device.title
             }}</span>
-            <span class="number-date">{{
-              kalendar_options.formatDayTitle(days[0])[1]
+            <span class="number-date w-4 h-4 text-sm">{{
+              device.id
             }}</span>
           </div>
         </li>
@@ -22,8 +22,8 @@
         <span>All Day</span>
         <li
           :key="index"
-          v-for="(day, index) in days || []"
-          :class="{ 'all-today': _isToday(days[0].value), 'is-all-day': false }"
+          v-for="(day, index) in devices || []"
+          :class="{ 'all-today': _isToday(current_day), 'is-all-day': false }"
           :style="`height:${kalendar_options.cell_height + 5}px`"
         ></li>
       </ul>
@@ -41,32 +41,40 @@
       <div class="calendar-blocks">
         <ul class="hours">
           <li
-            class="hour-row-identifier"
+            class="w-full hour-row-identifier"
             :key="index"
             v-for="(hour, index) in hoursVisible"
             :style="`height:${hourHeight}px`"
           >
-            <span>{{ kalendar_options.formatLeftHours(hour.value) }}</span>
+            <span class="w-full text-center ">{{ kalendar_options.formatLeftHours(hour.value) }}</span>
           </li>
         </ul>
         <div
           v-show="kalendar_options.style !== 'material_design'"
           class="hour-indicator-line"
-          :style="`top:${passedTime.distance}px`"
+          :style="`top:${passedTime}px`"
         >
-          <span class="time-value">{{ passedTime.value }}</span>
+          <span class="time-value">{{ passedTime }}</span>
           <span class="line"></span>
         </div>
+        <div
+        class="w-full flex"
+        v-if="days "
+        >
         <kalendar-days
           :day="days[0]"
+          :events="events"
+          :column_index="index"
+          :device="device"
           class="building-blocks"
           :class="`day-${index + 1}`"
-          :key="days[0].value.slice(0, 10)"
+          :key="`day-${current_day}${index}`"
           v-for="(device, index) in devices"
-          :passed-time="passedTime.distance"
-          :ref="days[0].value.slice(0, 10)"
+          :passed-time="passedTime"
+          :ref="days[0].value.slice(0, 10)+'-day'+index"
         >
         </kalendar-days>
+        </div>
       </div>
     </div>
   </div>
@@ -75,6 +83,7 @@
 import KalendarDays from "./kalendar-day.vue";
 import myWorker from "@/lib-components/workers";
 import {
+  getTopDistance ,
   isBefore,
   isToday,
   getHourlessDate,
@@ -83,10 +92,20 @@ import {
 } from "./utils";
 
 export default {
+
+  watch: {
+  },
   props: {
     // this provided array will be kept in sync
     devices: {
         required: true,
+        type: Array,
+        validator: function(val) {
+            return  Array.isArray(val) || typeof val === 'object';
+        },
+    },
+    events: {
+        required: false,
         type: Array,
         validator: function(val) {
             return  Array.isArray(val) || typeof val === 'object';
@@ -106,7 +125,7 @@ export default {
     setInterval(() => (this.kalendar_options.now = new Date()), 1000 * 60);
     this.constructWeek();
   },
-  inject: ["kalendar_options", "kalendar_events"],
+  inject: ["kalendar_options"],
   data: () => ({
     hours: null,
     days: []
@@ -125,31 +144,15 @@ export default {
       // * this.kalendar_options.hour_parts;
     },
     passedTime() {
-      let { day_starts_at, day_ends_at, now } = this.kalendar_options;
-      let time = getLocaleTime(now);
-      let day_starts = `${time.split("T")[0]}T${(day_starts_at + "").padStart(2, '0')}:00:00.000Z`;
-      let day_ends = `${time.split("T")[0]}T${(day_ends_at + "").padStart(2, '0')}:00:00.000Z`;
-      let time_obj = new Date(time);
-
-      if(new Date(day_ends) < time_obj || time_obj < new Date(day_starts)) return null;
-
-      let distance = (time_obj - new Date(day_starts)) / 1000 / 60;
-      return {distance, time};
+      let time_obj = new Date();
+      return ((getTopDistance(time_obj) / 10) * this.kalendar_options.cell_height); 
     }
   },
   methods: {
     _isToday(day) {
       return isToday(day);
     },
-    updateAppointments({ id, data }) {
-      this.$emit("update", { id, data });
-    },
-    deleteAppointment(id) {
-      this.$emit("delete", { id });
-    },
-    clearAppointments() {
-      this.$emit("clear");
-    },
+
     isDayBefore(day) {
       let now = new Date(this.kalendar_options.now);
       let formattedNow = getLocaleTime(now.toISOString());
@@ -188,44 +191,22 @@ export default {
       this.$kalendar.buildWeek = () => {
         this.constructWeek();
       };
-      this.$kalendar.addNewEvent = payload => {
-        if (!payload) return Promise.reject("No payload");
-
-        let { from, to } = payload;
-        if (from.slice(-4) === "000Z") payload.from = addTimezoneInfo(from);
-        if (to.slice(-4) === "000Z") payload.to = addTimezoneInfo(to);
-        let targetRef = payload.from.slice(0, 10);
-        const refObject = this.$refs[targetRef];
-        if (refObject && refObject[0]) {
-          refObject[0].addEvent(payload);
-        } else {
-          // appointment is not in this view
-          let events = this.$kalendar.getEvents();
-          events.push(payload);
-          this.$kalendar.updateEvents(events);
-        }
-      };
-
-      this.$kalendar.removeEvent = options => {
-        let { day, key, id } = options;
-        if (day.length > 10) {
-          day = day.slice(0, 10);
-        }
-        console.log("Options:", options);
-        if (!day) return Promise.reject("Day wasn't provided");
-        if (!id) return Promise.reject("No ID was provided");
-        if (!key) return Promise.reject("No key was provided in the object");
-        let targetRef = day;
-        this.$refs[targetRef][0].removeEvent({ id, key });
-      };
-
+      
       this.$kalendar.closePopups = () => {
         let refs = this.days.map(day => day.value.slice(0, 10));
         refs.forEach(ref => {
-          this.$refs[ref][0].clearCreatingLeftovers();
+          this.$refs[ref] && this.$refs[ref][0] ? this.$refs[ref][0].clearCreatingLeftovers() : null;
         });
       };
-    }
+    },
+
+        show_modal(item = null){
+            this.$parent.show_modal(item);
+        },
+        log(data)
+        {
+            this.$parent.log(data);
+        },
   }
 };
 </script>
@@ -398,4 +379,12 @@ $theme-color: #e5e5e5;
     }
   }
 }
+</style>
+
+<style lang="css">
+	.rtl .kalendar-wrapper.gstyle .sticky-top .days
+	{ 
+		padding-left: 0;
+		padding-right: 55px;
+	}
 </style>

@@ -1,4 +1,3 @@
-import axios$1 from 'axios';
 import Vue from 'vue';
 
 function _iterableToArrayLimit(arr, i) {
@@ -473,6 +472,9 @@ var addDays = function addDays(date, days) {
   dateObj.setDate(dateObj.getDate() + days);
   return dateObj;
 };
+var addMinutes = function addMinutes(date, minutes) {
+  return new Date(date.getTime() + minutes * 60000);
+};
 var startOfWeek = function startOfWeek(date) {
   var d = new Date(date);
   var day = d.getDay(),
@@ -505,8 +507,9 @@ var addTimezoneInfo = function addTimezoneInfo(ISOdate) {
 };
 var isToday = function isToday(date) {
   if (!date) return;
+  var newDate = date.value ? date.value : date;
   var today = getLocaleTime(new Date()).slice(0, 10);
-  return date.slice(0, 10) === today;
+  return newDate.slice(0, 10) === today;
 };
 var isBefore = function isBefore(date1, date2) {
   if (!date1 || !date2) return;
@@ -522,29 +525,40 @@ var formatAMPM = function formatAMPM(date) {
   var result = "".concat(hours % 12 === 0 ? 12 : hours % 12, " ").concat(hours >= 12 ? "PM" : "AM");
   return result;
 };
+var getDistance = function getDistance(event) {
+  var hourlySelection = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+  var diffInMs = new Date(event.end) - new Date(event.start);
+  var diffInHrs = Math.floor(diffInMs % 86400000 / 3600000);
+  var diffMins = Math.round(diffInMs % 86400000 % 3600000 / 60000);
+  var startDate = new Date(event.start);
+  var endDate = new Date(event.end);
+  var distance = diffMins + diffInHrs * (hourlySelection ? 10 : 60);
+  return distance;
+};
+var getTopDistance = function getTopDistance(start) {
+  var date = new Date(start);
+  return date.getMinutes() + date.getHours() * 60;
+};
 
-var axios = axios$1.default;
 var script = {
   components: {
     KalendarWeekView: function KalendarWeekView() {
-      return import('./kalendar-weekview-8b66c944.js');
+      return import('./kalendar-weekview-7abe0baf.js');
     }
   },
   props: {
+    // this provided array will be kept in sync
     devices: {
       required: true,
       type: Array,
       validator: function validator(val) {
-        return Array.isArray(val);
+        return Array.isArray(val) || _typeof(val) === 'object';
       }
     },
     // this provided array will be kept in sync
-    events: {
-      required: true,
-      type: Array,
-      validator: function validator(val) {
-        return Array.isArray(val);
-      }
+    settings: {
+      required: false,
+      type: Array | Object
     },
     // use this to enable/disable stuff which
     // are supported by Kalendar itself
@@ -559,7 +573,14 @@ var script = {
   data: function data() {
     var _this = this;
     return {
+      showCalendar: true,
+      showPopup: false,
       showModal: false,
+      showCart: false,
+      showConfirm: false,
+      showBooking: false,
+      activeItem: {},
+      events: [],
       current_day: getHourlessDate(),
       default_options: {
         cell_height: 10,
@@ -576,6 +597,8 @@ var script = {
         time_mode: 'relative',
         overlap: true,
         past_event_creation: true,
+        column_minwidth: 200,
+        animation_speed: 200,
         formatLeftHours: function formatLeftHours(date) {
           return getDatelessHour(date, _this.configuration.military_time);
         },
@@ -594,13 +617,11 @@ var script = {
         },
         formatDayNavigator: function formatDayNavigator(isoDate) {
           var day = new Date(isoDate);
-          _this.log(day.toUTCString().slice(5, 16));
-          _this.log(day.toUTCString().slice(5, 11));
           return day.toUTCString().slice(5, 11);
         }
       },
       kalendar_events: null,
-      activeItem: {},
+      new_appointment: {},
       scrollable: true
     };
   },
@@ -652,6 +673,12 @@ var script = {
         },
         past_event_creation: function past_event_creation(val) {
           return typeof val === 'boolean';
+        },
+        column_minwidth: function column_minwidth(val) {
+          return typeof val === 'number';
+        },
+        animation_speed: function animation_speed(val) {
+          return typeof val === 'number';
         }
       };
       for (var key in provided_props) {
@@ -665,23 +692,17 @@ var script = {
   created: function created() {
     var _this2 = this;
     this.current_day = this.kalendar_options.start_day;
-    this.loadEvents();
-    // this.kalendar_events = .events.map(event => ({
-    //     ...event,
-    //     id: event.id || generateUUID(),
-    // }));
+
+    // this.loadEvents();
 
     if (!this.$kalendar) {
       Vue.prototype.$kalendar = {};
     }
-    this.$kalendar.reloadEvents = function () {
-      return _this2.loadEvents();
-    };
     this.$kalendar.getEvents = function () {
       return _this2.kalendar_events;
     };
-    this.$kalendar.updateEvents = function () {
-      return _this2.loadEvents().kalendar_events;
+    this.$kalendar.updateEvents = function (payload) {
+      return _this2.loadEvents();
     };
   },
   provide: function provide() {
@@ -702,34 +723,28 @@ var script = {
     return provider;
   },
   methods: {
-    show_modal: function show_modal() {
-      var item = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
-      this.showModal = this.showModal ? false : true;
-      this.activeItem = item;
-    },
     getTime: getTime,
     changeDay: function changeDay(numDays) {
       var _this4 = this;
       this.current_day = addDays(this.current_day, numDays).toISOString();
       setTimeout(function () {
-        return _this4.loadEvents().$kalendar.buildWeek();
+        return _this4.reloadEvents();
       });
     },
     addAppointment: function addAppointment(popup_info) {
       var payload = {
         data: {
-          title: this.activeItem.title,
-          description: this.activeItem.description
+          title: this.new_appointment.title,
+          description: this.new_appointment.description
         },
         from: popup_info.start_time,
         to: popup_info.end_time
       };
-      this.$kalendar.addNewEvent(payload);
       this.$kalendar.closePopups();
       this.clearFormData();
     },
     clearFormData: function clearFormData() {
-      this.activeItem = {
+      this.new_appointment = {
         description: null,
         title: null
       };
@@ -737,51 +752,187 @@ var script = {
     closePopups: function closePopups() {
       this.$kalendar.closePopups();
     },
+    addToCart: function addToCart(activeItem) {
+      var item = {};
+      this.showCart = true;
+      if (activeItem) {
+        item.id = activeItem.id;
+        item.device = activeItem.device;
+        item.price = activeItem.price;
+        item.duration_time = activeItem.duration_time;
+        item.duration_hours = activeItem.duration_hours;
+        item.subtotal = activeItem.subtotal;
+        item.game = activeItem.game;
+        item.products = activeItem.products;
+      }
+      // this.$refs.side_cart.showCart = true
+      // this.$parent.showSide = false;
+      this.hidePopup(false);
+      var t = this;
+      setTimeout(function () {
+        t.$refs.side_cart ? t.$refs.side_cart.addToCart(item) : null;
+      }, 1000);
+    },
     /**
      * Update event data
      */
     updateInfo: function updateInfo(activeItem) {
-      this.showModal = false;
-      this.reloadEvents();
-      this.showModal = true;
+      this.showPopup = false;
+      this.showPopup = true;
       return this;
     },
     log: function log(data) {
       this.$parent.log(data);
     },
-    /**
-     * Load events 
+    show_modal: function show_modal() {
+      var item = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
+      this.showPopup = false;
+      if (item) {
+        if (item.id && item.status && item.status == 'active') this.setActiveItem(item);
+        if (item.status && item.status == 'completed') this.show_event(item);
+        if (item.status && item.status == 'paid') this.show_event(item);
+        if (!item.id) this.setNewItem(item);
+      }
+      this.showPopup = true;
+    },
+    show_event: function show_event() {
+      var item = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
+      this.showModal = false;
+      this.setEvent(item);
+      this.showBooking = true;
+    },
+    addTime: function addTime(time) {
+      var minutes = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+      return addMinutes(new Date(time), minutes);
+    },
+    dateTime: function dateTime(date) {
+      var d = new Date(date).toISOString();
+      var datestring = d.slice(11, 16);
+      return datestring;
+    },
+    dateText: function dateText(date) {
+      var d = new Date(date).toISOString();
+      var datestring = d.slice(0, 10);
+      return datestring;
+    },
+    /** 
+     * Set active item
+     * 
      */
-    loadEvents: function loadEvents() {
+    setNewItem: function setNewItem(newEvenet) {
+      if (newEvenet.ending_cell.value === newEvenet.starting_cell.value) {
+        var d = this.addTime(newEvenet.ending_cell.value, 60);
+        newEvenet.ending_cell.value = this.dateText(d) + 'T' + this.dateTime(d) + ':00.000Z';
+      }
+      this.activeItem = cloneObject(newEvenet);
+      this.games = newEvenet.device ? newEvenet.device.games : [];
+      this.activeItem.device_id = newEvenet.device ? newEvenet.device.id : 0;
+      this.activeItem.start = newEvenet.starting_cell ? this.dateTime(newEvenet.starting_cell.value) : null;
+      this.activeItem.start_time = newEvenet.starting_cell ? newEvenet.starting_cell.time : null;
+      this.activeItem.end = newEvenet.ending_cell ? this.dateTime(newEvenet.ending_cell.value) : null;
+      this.activeItem.end_time = newEvenet.ending_cell ? newEvenet.ending_cell.time : null;
+      this.activeItem.date = newEvenet.starting_cell ? this.dateText(newEvenet.starting_cell.value) : null;
+      this.activeItem.booking_type = 'single';
+      this.showModal = true;
+      return this;
+    },
+    /** 
+     * Set active item
+     * '
+     */
+    setActiveItem: function setActiveItem(props) {
+      this.activeItem = cloneObject(props);
+      this.games = props.device ? props.device.games : [];
+      this.activeItem.startStr = props.start;
+      this.activeItem.start = props.starting_cell ? this.dateTime(props.starting_cell.value) : null;
+      this.activeItem.start_time = props.starting_cell ? props.starting_cell.time : null;
+      this.activeItem.end = props.ending_cell ? this.dateTime(props.ending_cell.value) : null;
+      this.activeItem.end_time = props.ending_cell ? props.ending_cell.time : null;
+      this.activeItem.date = props.starting_cell ? this.dateText(props.starting_cell.value) : null;
+      this.activeItem.subtotal = this.subtotal();
+      this.showModal = true;
+      return this;
+    },
+    /** 
+     * Set active item
+     * '
+     */
+    setEvent: function setEvent(props) {
+      this.activeItem = cloneObject(props);
+      this.activeItem.startStr = props.start;
+      this.activeItem.subtotal = this.subtotal();
+      this.showModal = true;
+      return this;
+    },
+    /**
+     * Update event data
+     */
+    storeInfo: function storeInfo(activeItem) {
+      this.submit('Event.create', activeItem);
+    },
+    /**
+     * Update event data
+     */
+    submit: function submit(type) {
       var _this5 = this;
+      var newitem = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+      var item = newitem ? newitem : this.activeItem;
+      var request_type = item.id ? 'update' : 'create';
+      var params = new URLSearchParams([]);
+      item.start_time = this.current_day + ' ' + item.start;
+      item.end_time = this.current_day + ' ' + item.end;
+      params.append('type', type);
+      params.append('params[event]', JSON.stringify(item));
+      this.handleRequest(params, '/api/' + request_type).then(function (data) {
+        _this5.hidePopup();
+      });
+    },
+    subtotal: function subtotal() {
+      var price = this.activeItem.device_cost;
+      return (Number(price) * Number(this.activeItem.duration_hours)).toFixed(2);
+    },
+    hidePopup: function hidePopup() {
+      var reload = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : true;
+      this.showBooking = false;
+      this.showModal = false;
+      this.showConfirm = false;
+      if (reload) {
+        this.reloadEvents();
+      }
+    },
+    reloadEvents: function reloadEvents() {
+      var _this6 = this;
       return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee() {
         return _regeneratorRuntime().wrap(function _callee$(_context) {
           while (1) switch (_context.prev = _context.next) {
             case 0:
-              _context.next = 2;
-              return _this5.handleGetRequest('/api/calendar_events?start=' + _this5.current_day + '&end=' + addDays(_this5.current_day, 1).toISOString()).then(function (response) {
-                _this5.log('response');
-                _this5.log(response);
-                _this5.kalendar_events = response;
-                return _this5;
+              _this6.showCalendar = false;
+              _context.next = 3;
+              return _this6.loadEvents().then(function (response) {
+                _this6.showCalendar = true;
               });
-            case 2:
-              return _context.abrupt("return", _context.sent);
             case 3:
+              return _context.abrupt("return", _context.sent);
+            case 4:
             case "end":
               return _context.stop();
           }
         }, _callee);
       }))();
     },
-    handleGetRequest: function handleGetRequest(url) {
+    /**
+     * Load events 
+     */
+    loadEvents: function loadEvents() {
+      var _this7 = this;
       return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2() {
         return _regeneratorRuntime().wrap(function _callee2$(_context2) {
           while (1) switch (_context2.prev = _context2.next) {
             case 0:
               _context2.next = 2;
-              return axios.get(url).then(function (response) {
-                if (response.data) return response.data;else return response;
+              return _this7.handleGetRequest('/api/calendar_events?start=' + _this7.current_day + '&end=' + addDays(_this7.current_day, 1).toISOString()).then(function (response) {
+                _this7.kalendar_events = response;
+                return _this7;
               });
             case 2:
               return _context2.abrupt("return", _context2.sent);
@@ -792,24 +943,41 @@ var script = {
         }, _callee2);
       }))();
     },
-    handleRequest: function handleRequest(params) {
-      var _arguments = arguments,
-        _this6 = this;
+    handleGetRequest: function handleGetRequest(url) {
+      var _this8 = this;
       return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3() {
-        var url;
         return _regeneratorRuntime().wrap(function _callee3$(_context3) {
           while (1) switch (_context3.prev = _context3.next) {
             case 0:
-              url = _arguments.length > 1 && _arguments[1] !== undefined ? _arguments[1] : '/';
-              _context3.next = 3;
-              return _this6.$parent.handleRequest(params, url);
-            case 3:
+              _context3.next = 2;
+              return _this8.$parent.handleGetRequest(url);
+            case 2:
               return _context3.abrupt("return", _context3.sent);
-            case 4:
+            case 3:
             case "end":
               return _context3.stop();
           }
         }, _callee3);
+      }))();
+    },
+    handleRequest: function handleRequest(params) {
+      var _arguments = arguments,
+        _this9 = this;
+      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4() {
+        var url;
+        return _regeneratorRuntime().wrap(function _callee4$(_context4) {
+          while (1) switch (_context4.prev = _context4.next) {
+            case 0:
+              url = _arguments.length > 1 && _arguments[1] !== undefined ? _arguments[1] : '/';
+              _context4.next = 3;
+              return _this9.$parent.handleRequest(params, url);
+            case 3:
+              return _context4.abrupt("return", _context4.sent);
+            case 4:
+            case "end":
+              return _context4.stop();
+          }
+        }, _callee4);
       }))();
     },
     __: function __(i) {
@@ -955,11 +1123,14 @@ var __vue_render__ = function __vue_render__() {
   var _h = _vm.$createElement;
   var _c = _vm._self._c || _h;
   return _c('div', {
-    staticClass: "kalendar-wrapper",
+    staticClass: "kalendar-wrapper px-2",
     class: {
       'no-scroll': !_vm.scrollable,
       gstyle: _vm.kalendar_options.style === 'material_design',
       'day-view': _vm.kalendar_options.view_type === 'day'
+    },
+    attrs: {
+      "id": "calendar_wrapper"
     },
     on: {
       "touchstart": function touchstart($event) {
@@ -970,7 +1141,10 @@ var __vue_render__ = function __vue_render__() {
       }
     }
   }, [_c('div', {
-    staticClass: "week-navigator"
+    staticClass: "week-navigator",
+    staticStyle: {
+      "direction": "ltr"
+    }
   }, [_vm.kalendar_options.view_type === 'week' ? _c('div', {
     staticClass: "nav-wrapper"
   }, [_c('button', {
@@ -1073,30 +1247,48 @@ var __vue_render__ = function __vue_render__() {
     attrs: {
       "points": "9 18 15 12 9 6"
     }
-  })])])]) : _vm._e()]), _vm._v(" "), _c('kalendar-week-view', {
+  })])])]) : _vm._e()]), _vm._v(" "), _vm.showCalendar ? _c('kalendar-week-view', {
+    key: _vm.current_day,
     attrs: {
-      "devices": _vm.devices,
-      "current_day": _vm.current_day
+      "events": _vm.kalendar_events,
+      "current_day": _vm.current_day,
+      "devices": _vm.devices
     }
-  }), _vm._v(" "), _c('portal', {
+  }) : _vm._e(), _vm._v(" "), _c('portal', {
     staticClass: "slotable",
     attrs: {
-      "to": "event-creation"
+      "to": "event-details"
     },
     scopedSlots: _vm._u([{
       key: "default",
       fn: function fn(information) {
-        return _c('div', {
-          staticClass: "creating-event"
-        }, [_vm._t("creating-card", function () {
-          return [_c('h4', {
-            staticClass: "appointment-title",
-            staticStyle: {
-              "text-align": "left"
+        return _c('div', {}, [_vm._t("created-card", function () {
+          return [_c('div', {
+            staticClass: "absolute top-4 right-2 flex gap gap-2 font-semibold text-xs"
+          }, [_c('span', {
+            domProps: {
+              "textContent": _vm._s(information.start_time)
             }
-          }, [_vm._v("\n                    New Appointment\n                ")]), _vm._v(" "), _c('span', {
-            staticClass: "time"
-          }, [_vm._v("\n                    " + _vm._s(_vm.getTime(information.start_time)) + "\n                    -\n                    " + _vm._s(_vm.getTime(information.end_time)) + "\n                ")])];
+          }), _vm._v(" "), _c('span', {
+            domProps: {
+              "textContent": _vm._s(information.end_time)
+            }
+          })]), _vm._v(" "), _c('div', [_c('span', {
+            staticClass: "w-full block pb-2 text-left",
+            staticStyle: {
+              "direction": "ltr"
+            }
+          }, [information.game ? _c('img', {
+            staticClass: "rounded-full w-8 h-8 mb-2",
+            attrs: {
+              "src": information.game.picture
+            }
+          }) : _vm._e(), _vm._v(" "), _c('span', {
+            staticClass: "font-xxs font-semibold text-left w-full",
+            domProps: {
+              "textContent": _vm._s(information.title)
+            }
+          })])])];
         }, {
           "event_information": information
         })], 2);
@@ -1111,56 +1303,19 @@ var __vue_render__ = function __vue_render__() {
       key: "default",
       fn: function fn(information) {
         return _c('div', {
-          staticClass: "popup-event"
-        }, [_vm._t("popup-form", function () {
-          return [_c('input', {
-            directives: [{
-              name: "model",
-              rawName: "v-model",
-              value: _vm.activeItem.title,
-              expression: "activeItem.title"
-            }],
+          staticClass: "created-event"
+        }, [_vm._t("created-card", function () {
+          return [_c('h4', {
             staticStyle: {
-              "width": "100%"
-            },
-            attrs: {
-              "type": "text",
-              "name": "title",
-              "placeholder": "Title"
-            },
-            domProps: {
-              "value": _vm.activeItem.title
-            },
-            on: {
-              "input": function input($event) {
-                if ($event.target.composing) {
-                  return;
-                }
-                _vm.$set(_vm.activeItem, "title", $event.target.value);
-              }
+              "margin-bottom": "5px"
             }
-          }), _vm._v(" "), _c('div', {
-            staticClass: "buttons"
-          }, [_c('button', {
-            staticClass: "cancel",
-            on: {
-              "click": function click($event) {
-                return _vm.closePopups();
-              }
-            }
-          }, [_vm._v("\n                        Cancel\n                    ")]), _vm._v(" "), _c('button', {
-            on: {
-              "click": function click($event) {
-                return _vm.addAppointment(information);
-              }
-            }
-          }, [_vm._v("\n                        Save\n                    ")])])];
+          }, [_vm._v(_vm._s(information.title))])];
         }, {
-          "popup_information": information
+          "event_information": information
         })], 2);
       }
     }], null, true)
-  }), _vm._v(" "), _vm.showModal && _vm.activeItem ? _c('div', {
+  }), _vm._v(" "), _vm.showPopup ? _c('div', [_vm.showModal && _vm.activeItem && !_vm.activeItem.id ? _c('div', {
     staticClass: "fixed top-0 left-0 w-full h-full",
     staticStyle: {
       "z-index": "99"
@@ -1168,10 +1323,10 @@ var __vue_render__ = function __vue_render__() {
   }, [_c('div', {
     staticClass: "absolute top-0 left-0 w-full h-full",
     staticStyle: {
-      "background": "rgba(0,0,0,6)"
+      "background": "rgba(0,0,0,.6)"
     },
     on: {
-      "click": _vm.show_modal
+      "click": _vm.hidePopup
     }
   }), _vm._v(" "), _c('div', {
     staticClass: "left-0 right-0 fixed mx-auto w-full",
@@ -1181,19 +1336,137 @@ var __vue_render__ = function __vue_render__() {
     }
   }, [_c('div', {
     staticClass: "relative h-full"
-  }, [_c('calendar_active_item', {
+  }, [_c('calendar_new_item', {
+    attrs: {
+      "modal": _vm.activeItem,
+      "games": _vm.activeItem.device ? _vm.activeItem.device.games : []
+    }
+  })], 1)])]) : _vm._e(), _vm._v(" "), _vm.showModal && _vm.activeItem && _vm.activeItem.id ? _c('div', {
+    staticClass: "fixed top-0 left-0 w-full h-full",
+    staticStyle: {
+      "z-index": "99"
+    }
+  }, [_c('div', {
+    staticClass: "absolute top-0 left-0 w-full h-full",
+    staticStyle: {
+      "background": "rgba(0,0,0,.6)"
+    },
+    on: {
+      "click": _vm.hidePopup
+    }
+  }), _vm._v(" "), _c('div', {
+    staticClass: "left-0 right-0 fixed mx-auto w-full",
+    staticStyle: {
+      "max-width": "600px",
+      "z-index": "99"
+    }
+  }, [_c('div', {
+    staticClass: "relative h-full"
+  }, [_vm.showConfirm ? _c('div', {
+    staticClass: "top-20 relative mx-auto w-full bg-white p-6 rounded-lg",
+    staticStyle: {
+      "max-width": "600px",
+      "z-index": "99"
+    }
+  }, [_c('div', {
+    staticClass: "bg-blue-200 rounded-md py-2 px-4",
+    attrs: {
+      "role": "alert"
+    }
+  }, [_c('strong', {
+    domProps: {
+      "textContent": _vm._s(_vm.__('confirm'))
+    }
+  }), _vm._v(" "), _c('span', {
+    domProps: {
+      "textContent": _vm._s(_vm.__('confirm_complete_booking'))
+    }
+  }), _vm._v(" "), _c('button', {
+    staticClass: "btn-close",
+    attrs: {
+      "type": "button",
+      "data-bs-dismiss": "alert",
+      "aria-label": "Close"
+    },
+    on: {
+      "click": function click($event) {
+        _vm.showConfirm = false;
+      }
+    }
+  })]), _vm._v(" "), _c('div', {
+    staticClass: "my-2 cursor-pointer w-full text-white font-semibold py-2 border-b border-gray-200"
+  }, [_c('label', {
+    staticClass: "w-32 mx-auto py-2 rounded-lg bg-gradient-primary block text-center cursor-pointer",
+    domProps: {
+      "textContent": _vm._s(_vm.__('confirm'))
+    },
+    on: {
+      "click": function click($event) {
+        _vm.activeItem.status = 'completed';
+        _vm.submit('Event.update', _vm.activeItem);
+      }
+    }
+  })])]) : _vm._e(), _vm._v(" "), _c('calendar_active_item', {
     attrs: {
       "modal": _vm.activeItem
     }
-  })], 1)])]) : _vm._e()], 1);
+  })], 1)])]) : _vm._e(), _vm._v(" "), _vm.showBooking && _vm.activeItem ? _c('div', {
+    staticClass: "fixed top-0 left-0 w-full h-full",
+    staticStyle: {
+      "z-index": "99"
+    }
+  }, [_c('div', {
+    staticClass: "absolute top-0 left-0 w-full h-full",
+    staticStyle: {
+      "background": "rgba(0,0,0,.6)"
+    },
+    on: {
+      "click": _vm.hidePopup
+    }
+  }), _vm._v(" "), _c('div', {
+    staticClass: "left-0 right-0 fixed mx-auto w-full",
+    staticStyle: {
+      "max-width": "600px",
+      "z-index": "99"
+    }
+  }, [_c('div', {
+    staticClass: "relative h-full"
+  }, [_c('calendar_modal', {
+    attrs: {
+      "modal": _vm.activeItem
+    }
+  })], 1)])]) : _vm._e()]) : _vm._e(), _vm._v(" "), _vm.showCart ? _c('div', {
+    staticClass: "w-full h-full fixed top-0 left-0",
+    staticStyle: {
+      "z-index": "999"
+    }
+  }, [_vm.showCart ? _c('div', {
+    staticClass: "fixed h-full w-full top-0 left-0 bg-gray-800",
+    staticStyle: {
+      "opacity": ".6",
+      "z-index": "9"
+    },
+    on: {
+      "click": function click($event) {
+        _vm.showCart = false;
+        _vm.hidePopup;
+      }
+    }
+  }) : _vm._e(), _vm._v(" "), _vm.showCart ? _c('side_cart', {
+    ref: "side_cart",
+    attrs: {
+      "setting": _vm.settings,
+      "currency": _vm.settings.currency
+    }
+  }) : _vm._e()], 1) : _vm._e()], 1);
 };
 var __vue_staticRenderFns__ = [];
 
 /* style */
 var __vue_inject_styles__ = function __vue_inject_styles__(inject) {
   if (!inject) return;
-  inject("data-v-440d0652_0", {
-    source: "*{box-sizing:border-box}.kalendar-wrapper{font-family:-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\",\"Segoe UI Symbol\";min-height:1440px;--main-color:#ec4d3d;--weekend-color:#f7f7f7;--current-day-color:#fef4f4;--table-cell-border-color:#e5e5e5;--odd-cell-border-color:#e5e5e5;--hour-row-color:inherit;--dark:#212121;--lightg:#9e9e9e;--card-bgcolor:#4285f4;--card-color:white;--max-hours:10;--previous-events:#c6dafc;--previous-text-color:#727d8f}.kalendar-wrapper.gstyle{--hour-row-color:#212121;--main-color:#4285f4;--weekend-color:transparent;--current-day-color:transparent;--table-cell-border-color:#e0e0e0;--odd-cell-border-color:transparent;font-family:\"Google Sans\",Roboto,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Arial,sans-serif}.kalendar-wrapper.gstyle .week-navigator{background:#fff;border-bottom:none;padding:20px;color:rgba(0,0,0,.54)}.kalendar-wrapper.gstyle .week-navigator button{color:rgba(0,0,0,.54)}.kalendar-wrapper.gstyle .created-event,.kalendar-wrapper.gstyle .creating-event{background-color:var(--card-bgcolor);color:var(--card-color);text-shadow:none;border-left:none;border-radius:2px;opacity:1;border-bottom:solid 1px rgba(0,0,0,.03)}.kalendar-wrapper.gstyle .created-event>*,.kalendar-wrapper.gstyle .creating-event>*{text-shadow:none}.kalendar-wrapper.gstyle .is-past .created-event,.kalendar-wrapper.gstyle .is-past .creating-event{background-color:var(--previous-events);color:var(--previous-text-color)}.kalendar-wrapper.gstyle .created-event{width:96%}.kalendar-wrapper.gstyle .created-event .time{right:2px}.kalendar-wrapper.gstyle .sticky-top .days{margin-left:0;padding-left:55px}.kalendar-wrapper.gstyle .all-day{display:none}.kalendar-wrapper.gstyle ul.building-blocks.day-1 li.is-an-hour::before{content:\"\";position:absolute;bottom:-1px;left:-10px;width:10px;height:1px;background-color:var(--table-cell-border-color)}.kalendar-wrapper.gstyle .hours,.kalendar-wrapper.gstyle ul.building-blocks li{border-right:solid 1px var(--table-cell-border-color)}.kalendar-wrapper.gstyle .hours li{font-size:80%}.kalendar-wrapper.gstyle .hour-indicator-line>span.line{height:2px;background-color:#db4437}.kalendar-wrapper.gstyle .hour-indicator-line>span.line:before{content:\"\";width:12px;height:12px;display:block;background-color:#db4437;position:absolute;top:-1px;left:0;border-radius:100%}.kalendar-wrapper.gstyle .days{border-top:solid 1px var(--table-cell-border-color);position:relative}.kalendar-wrapper.gstyle .days:before{content:\"\";position:absolute;height:1px;width:55px;left:0;bottom:0;background-color:var(--table-cell-border-color)}.kalendar-wrapper.gstyle .day-indicator{display:flex;flex-direction:column;align-items:center;color:var(--dark);font-size:13px;padding-left:0;border-right:solid 1px var(--table-cell-border-color)}.kalendar-wrapper.gstyle .day-indicator>div{display:flex;flex-direction:column;align-items:center}.kalendar-wrapper.gstyle .day-indicator.is-before{color:#757575}.kalendar-wrapper.gstyle .day-indicator .number-date{margin-left:0;margin-right:0;order:2;font-size:25px;font-weight:500;width:46px;height:46px;border-radius:100%;align-items:center;justify-content:center;display:flex;margin-top:4px}.kalendar-wrapper.gstyle .day-indicator.today{border-bottom-color:var(--table-cell-border-color)}.kalendar-wrapper.gstyle .day-indicator.today:after{display:none}.kalendar-wrapper.gstyle .day-indicator.today .number-date{background-color:var(--main-color);color:#fff}.kalendar-wrapper.gstyle .day-indicator .letters-date{margin-left:0;margin-right:0;font-weight:500;text-transform:uppercase;font-size:11px}.kalendar-wrapper.gstyle .day-indicator:first-child{position:relative}.kalendar-wrapper.gstyle .day-indicator:first-child::before{content:\"\";position:absolute;left:-1px;top:0;width:1px;height:100%;background-color:var(--table-cell-border-color)}.kalendar-wrapper.gstyle .creating-event,.kalendar-wrapper.gstyle .popup-wrapper{box-shadow:0 6px 10px 0 rgba(0,0,0,.14),0 1px 18px 0 rgba(0,0,0,.12),0 3px 5px -1px rgba(0,0,0,.2);transition:opacity .1s linear}.kalendar-wrapper.non-desktop .building-blocks{pointer-events:none}.kalendar-wrapper.day-view .day-indicator{align-items:flex-start;text-align:center;padding-left:10px}.created-event,.creating-event{padding:4px 6px;cursor:default;word-break:break-word;height:100%;width:100%;font-size:14px}.created-event h4,.creating-event h4{font-weight:400}.creating-event{background-color:#34aadc;opacity:.9}.creating-event>*{text-shadow:0 0 7px rgba(0,0,0,.25)}.created-event{background-color:#bfecff;opacity:.74;border-left:solid 3px #34aadc;color:#1f6570}.week-navigator{display:flex;align-items:center;background:linear-gradient(#fdfdfd,#f9f9f9);border-bottom:solid 1px #ec4d3d;padding:10px 20px}.week-navigator .nav-wrapper{display:flex;align-items:center;justify-content:space-between;font-size:22px;width:25ch;max-width:30ch;margin:0 auto}.week-navigator .nav-wrapper span{white-space:nowrap}.week-navigator button{background:0 0;border:none;padding:0;display:inline-flex;margin:0 10px;color:#ec4d3d;align-items:center;font-size:14px;padding-bottom:5px}.kalendar-wrapper{background-color:#fff;min-width:300px}.no-scroll{overflow-y:hidden;max-height:100%}.hour-indicator-line{position:absolute;z-index:2;width:100%;height:10px;display:flex;align-items:center;pointer-events:none;user-select:none}.hour-indicator-line>span.line{background-color:var(--main-color);height:1px;display:block;flex:1}.hour-indicator-line>span.time-value{font-size:14px;width:48px;color:var(--main-color);font-weight:600;background-color:#fff}.hour-indicator-tooltip{position:absolute;z-index:0;background-color:var(--main-color);width:10px;height:10px;display:block;border-radius:100%;pointer-events:none;user-select:none}ul.kalendar-day li.kalendar-cell:last-child{display:none}.week-navigator-button{outline:0}.week-navigator-button:active svg,.week-navigator-button:hover svg{stroke:var(--main-color)}",
+  inject("data-v-bde56d88_0", {
+    source: "*{box-sizing:border-box}.kalendar-wrapper{font-family:-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\",\"Segoe UI Symbol\";min-height:1440px;--main-color:#ec4d3d;--weekend-color:#f7f7f7;--current-day-color:#fef4f4;--table-cell-border-color:#e5e5e5;--odd-cell-border-color:#e5e5e5;--hour-row-color:inherit;--dark:#212121;--lightg:#9e9e9e;--card-bgcolor:#4285f4;--card-color:white;--max-hours:10;--previous-events:#c6dafc;--previous-text-color:#727d8f}.kalendar-wrapper.gstyle{--hour-row-color:#212121;--main-color:#4285f4;--weekend-color:transparent;--current-day-color:transparent;--table-cell-border-color:#e0e0e0;--odd-cell-border-color:transparent;font-family:\"Google Sans\",Roboto,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Arial,sans-serif}.kalendar-wrapper.gstyle .week-navigator{background:#fff;border-bottom:none;padding:20px;color:rgba(0,0,0,.54)}.kalendar-wrapper.gstyle .week-navigator button{color:rgba(0,0,0,.54)}.kalendar-wrapper.gstyle .created-event,.kalendar-wrapper.gstyle .creating-event{background-color:var(--card-bgcolor);color:var(--card-color);text-shadow:none;border-left:none;border-radius:2px;opacity:1;border-bottom:solid 1px rgba(0,0,0,.03)}.kalendar-wrapper.gstyle .created-event>*,.kalendar-wrapper.gstyle .creating-event>*{text-shadow:none}.kalendar-wrapper.gstyle .is-past .created-event,.kalendar-wrapper.gstyle .is-past .creating-event{background-color:var(--previous-events);color:var(--previous-text-color)}.kalendar-wrapper.gstyle .created-event{width:96%}.kalendar-wrapper.gstyle .created-event .time{right:2px}.kalendar-wrapper.gstyle .sticky-top .days{margin-left:0;padding-left:55px}.kalendar-wrapper.gstyle .all-day{display:none}.kalendar-wrapper.gstyle ul.building-blocks.day-1 li.is-an-hour::before{content:\"\";position:absolute;bottom:-1px;left:-10px;width:10px;height:1px;background-color:var(--table-cell-border-color)}.kalendar-wrapper.gstyle .hours,.kalendar-wrapper.gstyle ul.building-blocks li{border-right:solid 1px var(--table-cell-border-color)}.kalendar-wrapper.gstyle .hours li{font-size:80%}.kalendar-wrapper.gstyle .hour-indicator-line>span.line{height:2px;background-color:#db4437}.kalendar-wrapper.gstyle .hour-indicator-line>span.line:before{content:\"\";width:12px;height:12px;display:block;background-color:#db4437;position:absolute;top:-1px;left:0;border-radius:100%}.kalendar-wrapper.gstyle .days{border-top:solid 1px var(--table-cell-border-color);position:relative}.kalendar-wrapper.gstyle .days:before{content:\"\";position:absolute;height:1px;width:55px;left:0;bottom:0;background-color:var(--table-cell-border-color)}.kalendar-wrapper.gstyle .day-indicator{display:flex;flex-direction:column;align-items:center;color:var(--dark);font-size:13px;padding-left:0;border-right:solid 1px var(--table-cell-border-color)}.kalendar-wrapper.gstyle .day-indicator>div{display:flex;flex-direction:column;align-items:center}.kalendar-wrapper.gstyle .day-indicator.is-before{color:#757575}.kalendar-wrapper.gstyle .day-indicator .number-date{margin-left:0;margin-right:0;order:2;font-size:16px;font-weight:500;width:28px;height:28px;border-radius:100%;align-items:center;justify-content:center;display:flex;margin-top:4px}.kalendar-wrapper.gstyle .day-indicator.today{border-bottom-color:var(--table-cell-border-color)}.kalendar-wrapper.gstyle .day-indicator.today:after{display:none}.kalendar-wrapper.gstyle .day-indicator.today .number-date{background-color:var(--main-color);color:#fff}.kalendar-wrapper.gstyle .day-indicator .letters-date{margin-left:0;margin-right:0;font-weight:500;text-transform:uppercase;font-size:11px}.kalendar-wrapper.gstyle .day-indicator:first-child{position:relative}.kalendar-wrapper.gstyle .day-indicator:first-child::before{content:\"\";position:absolute;left:-1px;top:0;width:1px;height:100%;background-color:var(--table-cell-border-color)}.kalendar-wrapper.gstyle .creating-event,.kalendar-wrapper.gstyle .popup-wrapper{box-shadow:0 6px 10px 0 rgba(0,0,0,.14),0 1px 18px 0 rgba(0,0,0,.12),0 3px 5px -1px rgba(0,0,0,.2);transition:opacity .1s linear}.kalendar-wrapper.non-desktop .building-blocks{pointer-events:none}.kalendar-wrapper.day-view .day-indicator{align-items:flex-start;text-align:center;padding-left:10px}.created-event,.creating-event{padding:4px 6px;cursor:default;word-break:break-word;height:100%;width:100%;font-size:14px}.created-event h4,.creating-event h4{font-weight:400}.creating-event{background-color:#34aadc;opacity:.9}.creating-event>*{text-shadow:0 0 7px rgba(0,0,0,.25)}.created-event{background-color:#bfecff;opacity:.74;border-left:solid 3px #34aadc;color:#1f6570}.week-navigator{display:flex;align-items:center;background:linear-gradient(#fdfdfd,#f9f9f9);border-bottom:solid 1px #ec4d3d;padding:10px 20px}.week-navigator .nav-wrapper{display:flex;align-items:center;justify-content:space-between;font-size:22px;width:25ch;max-width:30ch;margin:0 auto}.week-navigator .nav-wrapper span{white-space:nowrap}.week-navigator button{background:0 0;border:none;padding:0;display:inline-flex;margin:0 10px;color:#ec4d3d;align-items:center;font-size:14px;padding-bottom:5px}.kalendar-wrapper{background-color:#fff;min-width:300px}.no-scroll{overflow-y:hidden;max-height:100%}.hour-indicator-line{position:absolute;z-index:2;width:100%;height:10px;display:flex;align-items:center;pointer-events:none;user-select:none}.hour-indicator-line>span.line{background-color:var(--main-color);height:1px;display:block;flex:1}.hour-indicator-line>span.time-value{font-size:14px;width:48px;color:var(--main-color);font-weight:600;background-color:#fff}.hour-indicator-tooltip{position:absolute;z-index:0;background-color:var(--main-color);width:10px;height:10px;display:block;border-radius:100%;pointer-events:none;user-select:none}ul.kalendar-day li.kalendar-cell:last-child{display:none}.week-navigator-button{outline:0}.week-navigator-button:active svg,.week-navigator-button:hover svg{stroke:var(--main-color)}",
     map: undefined,
     media: undefined
   });
@@ -1251,4 +1524,4 @@ if (GlobalVue) {
   GlobalVue.use(plugin);
 }
 
-export { __vue_component__ as _, isToday as a, _objectSpread2 as b, cloneObject as c, normalizeComponent as d, createInjector as e, isBefore as f, getLocaleTime as g, getHourlessDate as h, isWeekend as i, addTimezoneInfo as j, _asyncToGenerator as k, _regeneratorRuntime as l, plugin as p };
+export { __vue_component__ as _, isToday as a, _objectSpread2 as b, cloneObject as c, normalizeComponent as d, createInjector as e, _typeof as f, getDistance as g, getTopDistance as h, isWeekend as i, getLocaleTime as j, isBefore as k, getHourlessDate as l, addTimezoneInfo as m, _defineProperty as n, plugin as p };
