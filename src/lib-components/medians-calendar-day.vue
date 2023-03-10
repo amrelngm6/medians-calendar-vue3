@@ -57,9 +57,9 @@ export default {
         this.renderDay();
     },
     components: {
-        medians_calendarCell: () => import("./medians-calendar-cell.vue"),
+        MediansCalendarCell: () => import("./medians-calendar-cell.vue"),
         MediansCalendarEvent: () => import('./medians-calendar-event.vue'),
-        medians_calendarCellBg: () => import("./medians-calendar-cell-bg.vue")
+        MediansCalendarCellBg: () => import("./medians-calendar-cell-bg.vue")
     },
     provide() {
         // provide these methods to children components

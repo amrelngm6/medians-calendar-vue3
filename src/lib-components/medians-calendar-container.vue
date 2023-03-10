@@ -97,33 +97,6 @@
 
         <medians-calendar-week-view :events="medians_calendar_events" v-if="showCalendar" :key="current_day" :current_day="current_day" :devices="devices" />
 
-        <portal to="event-details" class="slotable">
-            <div slot-scope="information" >
-                <slot name="created-card" :event_information="information">
-
-                    <div class="absolute top-4 right-2 flex gap gap-2 font-semibold text-xs">
-                        <span v-text="information.start_time"></span>
-                        <span v-text="information.end_time"></span>
-                    </div>
-                    <div  >
-                        <span class="w-full block pb-2 text-left" style="direction: ltr;">
-                            <img v-if="information.game" :src="information.game.picture" class="rounded-full w-8 h-8 mb-2" />
-                            <span class='font-xxs font-semibold text-left w-full' v-text="information.title"></span>
-                        </span>
-
-                    </div>
-
-                </slot>
-            </div>
-        </portal>
-
-        <portal to="event-popup-form" class="slotable">
-            <div slot-scope="information" class="created-event">
-                <slot name="created-card" :event_information="information">
-                    <h4 style="margin-bottom: 5px">{{ information.title }}</h4>
-                </slot>
-            </div>
-        </portal>
             
 
         <div v-if="showPopup">
