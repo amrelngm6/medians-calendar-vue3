@@ -2,14 +2,14 @@
 import * as components from "@/lib-components/index";
 
 // install function executed by Vue.use()
-const install = function installKalendarVue(Vue) {
+const install = function installMediansCalendarVue(Vue) {
 	if (install.installed) return;
 	install.installed = true;
 	Object.entries(components).forEach(([componentName, component]) => {
 		Vue.component(componentName, component);
 	});
 
-	Vue.prototype.$kalendar = {};
+	Vue.prototype.$medians_calendar = {};
 };
 
 // Create module definition for Vue.use()

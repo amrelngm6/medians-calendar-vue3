@@ -24,7 +24,7 @@
           :key="index"
           v-for="(day, index) in devices || []"
           :class="{ 'all-today': _isToday(current_day), 'is-all-day': false }"
-          :style="`height:${kalendar_options.cell_height + 5}px`"
+          :style="`height:${medians_calendar_options.cell_height + 5}px`"
         ></li>
       </ul>
     </div>
@@ -33,7 +33,7 @@
         <li
           :key="index"
           v-for="(day, index) in devices || []"
-          :style="`height:${kalendar_options.cell_height}px`"
+          :style="`height:${medians_calendar_options.cell_height}px`"
         ></li>
       </ul>
     </div>
@@ -46,11 +46,11 @@
             v-for="(hour, index) in hoursVisible"
             :style="`height:${hourHeight}px`"
           >
-            <span class="w-full text-center ">{{ kalendar_options.formatLeftHours(hour.value) }}</span>
+            <span class="w-full text-center ">{{ medians_calendar_options.formatLeftHours(hour.value) }}</span>
           </li>
         </ul>
         <div
-          v-show="kalendar_options.style !== 'material_design'"
+          v-show="medians_calendar_options.style !== 'material_design'"
           class="hour-indicator-line"
           :style="`top:${passedTime}px`"
         >
@@ -61,7 +61,7 @@
         class="w-full flex"
         v-if="days "
         >
-        <kalendar-days
+        <medians-calendar-days
           :day="days[0]"
           :events="events"
           :column_index="index"
@@ -73,14 +73,14 @@
           :passed-time="passedTime"
           :ref="days[0].value.slice(0, 10)+'-day'+index"
         >
-        </kalendar-days>
+        </medians-calendar-days>
         </div>
       </div>
     </div>
   </div>
 </template>
 <script>
-import KalendarDays from "./kalendar-day.vue";
+import MediansCalendarDays from "./medians-calendar-day.vue";
 import myWorker from "@/lib-components/workers";
 import {
   getTopDistance ,
@@ -118,14 +118,14 @@ export default {
     }
   },
   components: {
-    KalendarDays
+    MediansCalendarDays
   },
   created() {
     this.addHelperMethods();
-    setInterval(() => (this.kalendar_options.now = new Date()), 1000 * 60);
+    setInterval(() => (this.medians_calendar_options.now = new Date()), 1000 * 60);
     this.constructWeek();
   },
-  inject: ["kalendar_options"],
+  inject: ["medians_calendar_options"],
   data: () => ({
     hours: null,
     days: []
@@ -136,16 +136,16 @@ export default {
       return this.hours.filter(x => !!x.visible);
     },
     colsSpace() {
-      return this.kalendar_options.style === "flat_design" ? "5px" : "0px";
+      return this.medians_calendar_options.style === "flat_design" ? "5px" : "0px";
     },
     hourHeight() {
-      return (this.kalendar_options.hourlySelection ? 1 : 6) * this.kalendar_options.cell_height;
-      //this.kalendar_options.cell_height * (60 / this.kalendar_options.split_value);
-      // * this.kalendar_options.hour_parts;
+      return (this.medians_calendar_options.hourlySelection ? 1 : 6) * this.medians_calendar_options.cell_height;
+      //this.medians_calendar_options.cell_height * (60 / this.medians_calendar_options.split_value);
+      // * this.medians_calendar_options.hour_parts;
     },
     passedTime() {
       let time_obj = new Date();
-      return ((getTopDistance(time_obj) / 10) * this.kalendar_options.cell_height); 
+      return ((getTopDistance(time_obj) / 10) * this.medians_calendar_options.cell_height); 
     }
   },
   methods: {
@@ -154,13 +154,13 @@ export default {
     },
 
     isDayBefore(day) {
-      let now = new Date(this.kalendar_options.now);
+      let now = new Date(this.medians_calendar_options.now);
       let formattedNow = getLocaleTime(now.toISOString());
       return isBefore(day, getHourlessDate(formattedNow));
     },
     constructWeek() {
       const date = this.current_day.slice(0, 10);
-      const { hide_dates, hide_days, view_type } = this.kalendar_options;
+      const { hide_dates, hide_days, view_type } = this.medians_calendar_options;
       return Promise.all([
         myWorker
           .send("getDays", {
@@ -177,8 +177,8 @@ export default {
         myWorker
           .send("getHours", {
             hourOptions: {
-              start_hour: this.kalendar_options.day_starts_at,
-              end_hour: this.kalendar_options.day_ends_at
+              start_hour: this.medians_calendar_options.day_starts_at,
+              end_hour: this.medians_calendar_options.day_ends_at
             }
           })
           .then(reply => {
@@ -188,11 +188,11 @@ export default {
       ]);
     },
     addHelperMethods() {
-      this.$kalendar.buildWeek = () => {
+      this.$medians_calendar.buildWeek = () => {
         this.constructWeek();
       };
       
-      this.$kalendar.closePopups = () => {
+      this.$medians_calendar.closePopups = () => {
         let refs = this.days.map(day => day.value.slice(0, 10));
         refs.forEach(ref => {
           this.$refs[ref] && this.$refs[ref][0] ? this.$refs[ref][0].clearCreatingLeftovers() : null;
@@ -382,7 +382,7 @@ $theme-color: #e5e5e5;
 </style>
 
 <style lang="css">
-	.rtl .kalendar-wrapper.gstyle .sticky-top .days
+	.rtl .medians-calendar-wrapper.gstyle .sticky-top .days
 	{ 
 		padding-left: 0;
 		padding-right: 55px;

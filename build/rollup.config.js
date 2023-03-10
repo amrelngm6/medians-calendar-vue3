@@ -112,9 +112,9 @@ if (!argv.format || argv.format === "cjs") {
     external,
     output: {
       compact: true,
-      file: "dist/kalendar-vue.umd.js",
+      file: "dist/medians-calendar-vue.umd.js",
       format: "cjs",
-      name: "KalendarVue",
+      name: "MediansCalendarVue",
       exports: "named",
       globals
     },

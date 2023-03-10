@@ -2,7 +2,7 @@
     <div
         v-if="event"
         class="right-0 left-0 mx-auto event-card cursor-pointer"
-        :ref="`kalendarEventRef-${event.id}`"
+        :ref="`medians_calendarEventRef-${event.id}`"
         :style="`
           height: ${distance}; 
           width: ${width_value}; 
@@ -42,9 +42,9 @@ export default {
         let t = this;
         setTimeout(function () {
             jQuery('#event-'+t.index+' > .animated').css('opacity', 1)
-        }, this.column_index * this.kalendar_options.animation_speed)
+        }, this.column_index * this.medians_calendar_options.animation_speed)
     },
-    inject: ['kalendar_options'],
+    inject: ['medians_calendar_options'],
     data: () => ({
         opacity: 0,
         inspecting: false,
@@ -63,14 +63,14 @@ export default {
         },
         top_offset() {
 
-            let topDistance = getTopDistance(this.event.from,  this.kalendar_options.hourlySelection)
+            let topDistance = getTopDistance(this.event.from,  this.medians_calendar_options.hourlySelection)
             return topDistance > 0
-                ? `${(topDistance/10) * this.kalendar_options.cell_height}px`
+                ? `${(topDistance/10) * this.medians_calendar_options.cell_height}px`
                 : `0px`;
         },
         distance() {
             if (!this.event) return;
-            let multiplier = this.kalendar_options.cell_height / 10;
+            let multiplier = this.medians_calendar_options.cell_height / 10;
             // 0.5 * multiplier for an offset so next cell is easily selected
             return `${this.event.distance * multiplier - 0.2 * multiplier}px`;
         },
@@ -82,7 +82,7 @@ export default {
             let payload = {
                 start_time: addTimezoneInfo(start),
                 end_time: addTimezoneInfo(end),
-                kalendar_id: id,
+                medians_calendar_id: id,
                 key,
                 data,
             };
@@ -90,7 +90,7 @@ export default {
             return payload;
         },
         editEvent() {
-            this.$kalendar.closePopups();
+            this.$medians_calendar.closePopups();
             this.editing = true;
         },
         closeEventPopup() {

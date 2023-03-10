@@ -1,6 +1,6 @@
-## 🗓 Kalendar
+## 🗓 MediansCalendar
 
-[![npm version](https://badge.fury.io/js/kalendar-vue.svg)](https://badge.fury.io/js/kalendar-vue)
+[![npm version](https://badge.fury.io/js/medians-calendar-vue.svg)](https://badge.fury.io/js/medians-calendar-vue)
 [![Open Source Love](https://badges.frapsoft.com/os/v1/open-source.svg?v=102)](https://github.com/ellerbrock/open-source-badge/)
 [![Open Source Love](https://badges.frapsoft.com/os/mit/mit.svg?v=102)](https://github.com/ellerbrock/open-source-badge/)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
@@ -9,13 +9,13 @@
 
 ## 🕹 Live Demo
 
-[Kalendar Showcase](http://kalendar.altinselimi.com/)
+[MediansCalendar Showcase](http://medians_calendar.altinselimi.com/)
 
 ### Running the Demo Locally
 
 You can run the demo locally :
-  - git clone https://github.com/altinselimi/kalendar.git
-  - cd kalendar
+  - git clone https://github.com/altinselimi/medians_calendar.git
+  - cd medians_calendar
   - npm install
   - npm run serve
 
@@ -27,7 +27,7 @@ You can run the demo locally :
 -   Install plugin and its dependencies from npm
 
 ```
-npm install kalendar-vue portal-vue -S
+npm install medians-calendar-vue portal-vue -S
 ```
 
 -   The easiest option is to copy the demo app from `src/serve-dev.vue` into your project and start from that.
@@ -41,10 +41,10 @@ import Vue from "vue";
 import PortalVue from "portal-vue";
 Vue.use(PortalVue);
 
-import { Kalendar } from 'kalendar-vue';
+import { MediansCalendar } from 'medians-calendar-vue';
 ...
 components: {
-	Kalendar,
+	MediansCalendar,
 	...
 },
 ```
@@ -55,7 +55,7 @@ You must use the `sync` modifier when passing the `configuration` prop to the co
 
 ```vue
 <template>
-	<kalendar :configuration="calendar_settings" :events.sync="events" />
+	<medians_calendar :configuration="calendar_settings" :events.sync="events" />
 </template>
 <script>
 ...
@@ -92,22 +92,22 @@ data: () => ({
 </script>
 ```
 
-### 🎛 Kalendar Options
+### 🎛 MediansCalendar Options
 
 | Option              | Default Value                                                  | Type          | Description                                                                                                  |
 | ------------------- | -------------------------------------------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------ |
-| view_type           | 'week'                                                         | string        | Determines the mode of kalendar. You can pick either 'week' or 'day'. Day is recommended for mobile devices. |
+| view_type           | 'week'                                                         | string        | Determines the mode of medians_calendar. You can pick either 'week' or 'day'. Day is recommended for mobile devices. |
 | cell_height         | 10                                                             | string        | Determines the height in pixels of a cell                                                                    |
-| start_day           | new Date().toISOString()                                       | string        | Determines the week or day which is shown in the kalendar on first load                                                    |
+| start_day           | new Date().toISOString()                                       | string        | Determines the week or day which is shown in the medians_calendar on first load                                                    |
 | style               | 'material_design'                                              | string        | You can pick either 'material_design' or 'flat_design' (iOS)                                                 |
-| read_only           | false                                                          | boolean       | Enabled, viewers won't be able to interact with kalendar                                                     |
-| day_starts_at       | 0                                                              | integer       | Determines what hour the kalendar starts from (0 to 24)                                                      |
-| day_ends_at         | 24                                                             | integer       | Determines what hour the kalendar ends at (0 to 24)                                                          |
+| read_only           | false                                                          | boolean       | Enabled, viewers won't be able to interact with medians_calendar                                                     |
+| day_starts_at       | 0                                                              | integer       | Determines what hour the medians_calendar starts from (0 to 24)                                                      |
+| day_ends_at         | 24                                                             | integer       | Determines what hour the medians_calendar ends at (0 to 24)                                                          |
 | overlap             | true                                                           | boolean       | Enables ability to create multiple events (overlapping) at the same timeframe                                |
-| hide_dates          | []                                                             | Array<String> | Hides the provided dates from kalendar. Array of strings each being a valid date in YYYY-MM-DD format.       |
-| hide_days           | [6]                                                            | Array<Int>    | Hides the provided days from kalendar. Monday = 0 ... Sunday = 6                                             |
+| hide_dates          | []                                                             | Array<String> | Hides the provided dates from medians_calendar. Array of strings each being a valid date in YYYY-MM-DD format.       |
+| hide_days           | [6]                                                            | Array<Int>    | Hides the provided days from medians_calendar. Monday = 0 ... Sunday = 6                                             |
 | past_event_creation | true                                                           | boolean       | Determines the ability of creating events that have happened in the past                                     |
-| scrollToNow         | true                                                           | boolean       | Scroll kalendar to current time on render                                                                    |
+| scrollToNow         | true                                                           | boolean       | Scroll medians_calendar to current time on render                                                                    |
 | formatLeftHours     | (date) => { return format(date, 'HH') }                        | function      | A function which accepts an ISO date and determines how the hours on the left side are shown                 |
 | formatDayTitle      | (date) => { return format(date, 'DDD dd') }                    | function      | A function which accepts an ISO date and determines what the day column title shows                          |
 | formatWeekNavigator | (date) => { return `${startDate(date)} - ${endDate(date)}`}    | function      | A function which accepts an ISO date and determines what the week view navigator (at the top) shows          |
@@ -131,8 +131,8 @@ data: () => ({
 | ----------- | ------ | --------------------------------------------------------------------------------- | --- | --- |
 | start_time  | String | Start time as ISO Date String of the event                                        |     |     |
 | end_time    | String | End time as ISO Date String of the event                                          |     |     |
-| kalendar_id | String | Unique ID used for operations internally by kalendar                              |     |     |
-| key         | String | Key of the event used internally by kalendar                                      |     |     |
+| medians_calendar_id | String | Unique ID used for operations internally by medians_calendar                              |     |     |
+| key         | String | Key of the event used internally by medians_calendar                                      |     |     |
 | data        | Object | Data object which can hold any type of information which may prove useful for you |     |     |
 
 ## 🛣 Roadmap

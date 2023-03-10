@@ -2,7 +2,7 @@
     box-sizing: border-box;
 }
 
-.kalendar-wrapper {
+.medians-calendar-wrapper {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
         Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol';
@@ -291,7 +291,7 @@
     }
 }
 
-.kalendar-wrapper {
+.medians-calendar-wrapper {
     background-color: white;
     min-width: 300px;
 }
@@ -339,7 +339,7 @@
     user-select: none;
 }
 
-ul.kalendar-day li.kalendar-cell:last-child {
+ul.medians-calendar-day li.medians-calendar-cell:last-child {
     display: none;
 }
 

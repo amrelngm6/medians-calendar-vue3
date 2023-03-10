@@ -3,18 +3,18 @@
       'is-weekend': isWeekend,
       'is-today': isToday,
       creating: creator.creating || creator.status === 'active'
-    }" class="kalendar-day" :ref="day.value + '-reference'">
+    }" class="medians-calendar-day" :ref="day.value + '-reference'">
         <div ref="nowIndicator" id="now-indicator" :class="
-        kalendar_options.style === 'material_design'
+        medians_calendar_options.style === 'material_design'
           ? 'hour-indicator-line'
           : 'hour-indicator-tooltip'
       " v-if="isToday" :style="`top:${passedTime}px`">
-            <span class="line" v-show="kalendar_options.style === 'material_design'"></span>
+            <span class="line" v-show="medians_calendar_options.style === 'material_design'"></span>
         </div>
 
         <div>
                 
-            <kalendar-cell-bg  
+            <medians-calendar-cell-bg  
                 v-for="(cell, index) in day_cells" 
                 :key="`cell-bg-${index}`" 
                 :creator="creator" 
@@ -28,7 +28,7 @@
                 />
         </div>
 
-            <KalendarEvent
+            <MediansCalendarEvent
                 :style="`z-index: 10`"
                 v-if="day_events && day_events.length && event  "
                 v-for="(event, eventIndex) in day_events"
@@ -57,22 +57,22 @@ export default {
         this.renderDay();
     },
     components: {
-        kalendarCell: () => import("./kalendar-cell.vue"),
-        KalendarEvent: () => import('./kalendar-event.vue'),
-        kalendarCellBg: () => import("./kalendar-cell-bg.vue")
+        medians_calendarCell: () => import("./medians-calendar-cell.vue"),
+        MediansCalendarEvent: () => import('./medians-calendar-event.vue'),
+        medians_calendarCellBg: () => import("./medians-calendar-cell-bg.vue")
     },
     provide() {
         // provide these methods to children components
         // for easier access
         return {
-            kalendarAddEvent: this.addEvent,
-            kalendarClearPopups: this.clearCreatingLeftovers
+            medians_calendarAddEvent: this.addEvent,
+            medians_calendarClearPopups: this.clearCreatingLeftovers
         };
     },
-    // inject kalendar options from parent component
-    inject: ["kalendar_options"],
+    // inject medians_calendar options from parent component
+    inject: ["medians_calendar_options"],
     mounted() {
-        if (this.kalendar_options.scrollToNow && this.isToday) this.scrollView();
+        if (this.medians_calendar_options.scrollToNow && this.isToday) this.scrollView();
     },
     computed: {
         isWeekend() {
@@ -109,10 +109,10 @@ export default {
                 .send("getDayCells", {
                     day: this.day.value,
                     hourOptions: {
-                        start_hour: this.kalendar_options.day_starts_at,
-                        end_hour: this.kalendar_options.day_ends_at,
+                        start_hour: this.medians_calendar_options.day_starts_at,
+                        end_hour: this.medians_calendar_options.day_ends_at,
                     },
-                    hourlySelection: this.kalendar_options.hourlySelection
+                    hourlySelection: this.medians_calendar_options.hourlySelection
                 })
                 .then(reply => {
                     this.day_cells = reply;
@@ -137,11 +137,11 @@ export default {
             let clonedEvents = [];
             if (this.$parent.events)
             {
-                this.kalendar_events = this.$parent.events;
-                for (var i = this.kalendar_events.length - 1; i >= 0; i--) {
-                    if (this.kalendar_events[i] && this.device && this.device.id && this.device.id ==  this.kalendar_events[i].device.id ){
-                        clonedEvents[i] = cloneObject(this.kalendar_events[i]);
-                        clonedEvents[i].distance = getDistance(this.kalendar_events[i], this.kalendar_options.hourlySelection);
+                this.medians_calendar_events = this.$parent.events;
+                for (var i = this.medians_calendar_events.length - 1; i >= 0; i--) {
+                    if (this.medians_calendar_events[i] && this.device && this.device.id && this.device.id ==  this.medians_calendar_events[i].device.id ){
+                        clonedEvents[i] = cloneObject(this.medians_calendar_events[i]);
+                        clonedEvents[i].distance = getDistance(this.medians_calendar_events[i], this.medians_calendar_options.hourlySelection);
                     }
                 }
             }
@@ -190,7 +190,7 @@ export default {
                 status: "creating"
             };
             if (
-                this.kalendar_options.overlap === false &&
+                this.medians_calendar_options.overlap === false &&
                 Object.keys(this.day_events).length > 0
             ) {
                 let fixedOverlap = this.overlapPolice(payload);
@@ -240,7 +240,7 @@ export default {
             // let startDate = new Date(starting_cell.value);
             // let endDate = new Date(ending_cell.value);
 
-            // let distance = diffMins + diffInHrs * (this.kalendar_options.hourlySelection ? 10 : 60);
+            // let distance = diffMins + diffInHrs * (this.medians_calendar_options.hourlySelection ? 10 : 60);
 
             // this.temporary_event = {
             //     start: {
@@ -301,7 +301,7 @@ export default {
                         rounded: false,
                         round_offset: null
                     },
-                    distance: diffMins + diffInHrs * (this.kalendar_options.hourlySelection ? 10 : 60),
+                    distance: diffMins + diffInHrs * (this.medians_calendar_options.hourlySelection ? 10 : 60),
                     status: "active"
                 };
 
@@ -383,7 +383,7 @@ export default {
 };
 </script>
 <style lang="scss">
-ul.kalendar-day {
+ul.medians-calendar-day {
     position: relative;
     background-color: white;
 

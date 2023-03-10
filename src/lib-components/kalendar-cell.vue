@@ -1,6 +1,6 @@
 <template>
     <div
-        class="kalendar-cell rounded relative"
+        class="medians-calendar-cell rounded relative"
         :class="{
             selected: selected,
             'is-an-hour': isAnHour(index),
@@ -9,13 +9,13 @@
         }"
         :style="
             `
-      height: ${kalendar_options.cell_height}px;
+      height: ${medians_calendar_options.cell_height}px;
     `
         "
         >
     <div>
         
-        <KalendarEvent
+        <MediansCalendarEvent
             :style="`z-index: 10`"
             v-if="cell_events && cell_events.length && event  "
             v-for="(event, eventIndex) in cell_events"
@@ -37,9 +37,9 @@ export default {
         'constructedEvents',
         'temporaryEvent',
     ],
-    inject: ['kalendar_options'],
+    inject: ['medians_calendar_options'],
     components: {
-        KalendarEvent: () => import('./kalendar-event.vue'),
+        MediansCalendarEvent: () => import('./medians-calendar-event.vue'),
     },
     computed: {
         cell_events() {
@@ -96,7 +96,7 @@ export default {
             this.$emit('reset');
         },
         isAnHour(index) {
-            if(this.kalendar_options.hourlySelection) {
+            if(this.medians_calendar_options.hourlySelection) {
                 return true
             } else {
                 return (index + 1) % (60 / 10) === 0

@@ -1,6 +1,6 @@
 <script>
 export default {
-  name: 'KalendarVueSample', // vue component name
+  name: 'MediansCalendarVueSample', // vue component name
   data() {
     return {
       counter: 5,
@@ -41,7 +41,7 @@ export default {
 </script>
 
 <template>
-  <div class="kalendar-vue-sample">
+  <div class="medians-calendar-vue-sample">
     <p>The counter was {{ changedBy }} to <b>{{ counter }}</b>.</p>
     <button @click="increment">
       Click +1
@@ -62,7 +62,7 @@ export default {
 </template>
 
 <style scoped>
-  .kalendar-vue-sample {
+  .medians-calendar-vue-sample {
     display: block;
     width: 400px;
     margin: 25px auto;
@@ -71,7 +71,7 @@ export default {
     text-align: center;
     padding: 25px;
   }
-  .kalendar-vue-sample p {
+  .medians-calendar-vue-sample p {
     margin: 0 0 1em;
   }
 </style>

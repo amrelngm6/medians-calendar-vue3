@@ -1,7 +1,7 @@
 <template>
     <div
         v-if="cellData.visible"
-        class="text-xs hover:text-gray-600 border-gray-100 hover:bg-gray-100 border kalendar-cell-bg rounded relative cell-bg"
+        class="text-xs hover:text-gray-600 border-gray-100 hover:bg-gray-100 border medians-calendar-cell-bg rounded relative cell-bg"
         :class="{
             // selected: selected,
             'is-an-hour': isAnHour(index),
@@ -11,7 +11,7 @@
         }"
         :style="
             `
-      height: ${kalendar_options.cell_height}px;
+      height: ${medians_calendar_options.cell_height}px;
     `
         "
         @mouseover="showBgHover = true; "
@@ -44,9 +44,9 @@ export default {
         'constructedEvents',
         'temporaryEvent',
     ],
-    inject: ['kalendar_options'],
+    inject: ['medians_calendar_options'],
     components: {
-        KalendarEvent: () => import('./kalendar-event.vue'),
+        MediansCalendarEvent: () => import('./medians-calendar-event.vue'),
     },
     computed: {
         
@@ -54,7 +54,7 @@ export default {
     methods: {
         mouseDown() {
 
-            // user mouse got depressed while outside kalendar-cells
+            // user mouse got depressed while outside medians-calendar-cells
             // came back in and clicked while the creator was on
             if (!!this.creator.creating) {
                 this.mouseUp();
@@ -64,7 +64,7 @@ export default {
                 read_only,
                 overlap,
                 past_event_creation,
-            } = this.kalendar_options;
+            } = this.medians_calendar_options;
             if (read_only) return;
 
             // if past_event_creation is set to false, check if cell value is
@@ -80,9 +80,9 @@ export default {
             // if overlap is set to false, prevent selection on top of
             // other events
 
-            // close any open popups in the whole kalendar instance
+            // close any open popups in the whole medians_calendar instance
             // before starting a new one
-            this.$kalendar.closePopups();
+            this.$medians_calendar.closePopups();
 
             // create a payload consisting of
             // starting, current, ending and originalStarting cell
@@ -101,7 +101,7 @@ export default {
         mouseMove() {
 
             // same guards like in the mouseDown function
-            let { read_only, overlap } = this.kalendar_options;
+            let { read_only, overlap } = this.medians_calendar_options;
             if (read_only) return;
             if (this.creator && !this.creator.creating) return;
             let {
@@ -133,7 +133,7 @@ export default {
             this.$emit('reset');
         },
         isAnHour(index) {
-            if(this.kalendar_options.hourlySelection) {
+            if(this.medians_calendar_options.hourlySelection) {
                 return true
             } else {
                 return (index + 1) % (60 / 10) === 0

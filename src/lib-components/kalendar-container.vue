@@ -1,11 +1,11 @@
 <template>
     <div
-        class="kalendar-wrapper px-2 "
+        class="medians-calendar-wrapper px-2 "
         id="calendar_wrapper"
         :class="{
             'no-scroll': !scrollable,
-            gstyle: kalendar_options.style === 'material_design',
-            'day-view': kalendar_options.view_type === 'day',
+            gstyle: medians_calendar_options.style === 'material_design',
+            'day-view': medians_calendar_options.view_type === 'day',
         }"
         @touchstart="scrollable = false"
         @touchend="scrollable = true"
@@ -13,7 +13,7 @@
         <div class="week-navigator" style="direction:ltr;">
             <div
                 class="nav-wrapper"
-                v-if="kalendar_options.view_type === 'week'"
+                v-if="medians_calendar_options.view_type === 'week'"
             >
                 <button class="week-navigator-button" @click="changeDay(-7)">
                     <svg
@@ -33,7 +33,7 @@
                 </button>
                 <div>
                     <span>{{
-                        kalendar_options.formatWeekNavigator(current_day)
+                        medians_calendar_options.formatWeekNavigator(current_day)
                     }}</span>
                 </div>
                 <button class="week-navigator-button" @click="changeDay(7)">
@@ -54,7 +54,7 @@
             </div>
             <div
                 class="nav-wrapper"
-                v-if="kalendar_options.view_type === 'day'"
+                v-if="medians_calendar_options.view_type === 'day'"
             >
                 <button class="week-navigator-button" @click="changeDay(-1)">
                     <svg
@@ -74,7 +74,7 @@
                 </button>
                 <div>
                     <span>{{
-                        kalendar_options.formatDayNavigator(current_day)
+                        medians_calendar_options.formatDayNavigator(current_day)
                     }}</span>
                 </div>
                 <button class="week-navigator-button" @click="changeDay(1)">
@@ -95,7 +95,7 @@
             </div>
         </div>
 
-        <kalendar-week-view :events="kalendar_events" v-if="showCalendar" :key="current_day" :current_day="current_day" :devices="devices" />
+        <medians-calendar-week-view :events="medians_calendar_events" v-if="showCalendar" :key="current_day" :current_day="current_day" :devices="devices" />
 
         <portal to="event-details" class="slotable">
             <div slot-scope="information" >
@@ -196,7 +196,7 @@ import {
 
 export default {
     components: {
-        KalendarWeekView: () => import('./kalendar-weekview.vue'),
+        MediansCalendarWeekView: () => import('./medians-calendar-weekview.vue'),
     },
     props: {
         // this provided array will be kept in sync
@@ -215,7 +215,7 @@ export default {
         },
         
         // use this to enable/disable stuff which
-        // are supported by Kalendar itself
+        // are supported by MediansCalendar itself
         configuration: {
             type: Object,
             required: false,
@@ -276,13 +276,13 @@ export default {
                     return day.toUTCString().slice(5, 11);
                 },
             },
-            kalendar_events: null,
+            medians_calendar_events: null,
             new_appointment: {},
             scrollable: true,
         };
     },
     computed: {
-        kalendar_options() {
+        medians_calendar_options() {
             let options = this.default_options;
             let provided_props = this.configuration;
 
@@ -319,27 +319,27 @@ export default {
         },
     },
     created() {
-        this.current_day = this.kalendar_options.start_day;
+        this.current_day = this.medians_calendar_options.start_day;
         
         this.loadEvents();
 
-        if (!this.$kalendar) {
-            Vue.prototype.$kalendar = {};
+        if (!this.$medians_calendar) {
+            Vue.prototype.$medians_calendar = {};
         }
 
-        this.$kalendar.getEvents = () => this.kalendar_events;
+        this.$medians_calendar.getEvents = () => this.medians_calendar_events;
 
-        this.$kalendar.updateEvents = payload => this.loadEvents();
+        this.$medians_calendar.updateEvents = payload => this.loadEvents();
     },
     provide() {
         const provider = {};
-        Object.defineProperty(provider, 'kalendar_options', {
+        Object.defineProperty(provider, 'medians_calendar_options', {
             enumerable: true,
-            get: () => this.kalendar_options,
+            get: () => this.medians_calendar_options,
         });
-        Object.defineProperty(provider, 'kalendar_events', {
+        Object.defineProperty(provider, 'medians_calendar_events', {
             enumerable: true,
-            get: () => this.kalendar_events,
+            get: () => this.medians_calendar_events,
         });
         return provider;
     },
@@ -359,7 +359,7 @@ export default {
                 to: popup_info.end_time,
             };
 
-            this.$kalendar.closePopups();
+            this.$medians_calendar.closePopups();
             this.clearFormData();
         },
         clearFormData() {
@@ -369,7 +369,7 @@ export default {
             };
         },
         closePopups() {
-            this.$kalendar.closePopups();
+            this.$medians_calendar.closePopups();
         },
 
         addToCart(activeItem)
@@ -571,7 +571,7 @@ export default {
         async loadEvents()
         {
             return await this.handleGetRequest('/api/calendar_events?start='+this.current_day+'&end='+addDays(this.current_day, 1).toISOString()).then(response => {
-                this.kalendar_events = response;
+                this.medians_calendar_events = response;
                 return this;
             });
         } ,
