@@ -21,6 +21,8 @@
         }"
         :id="'event-'+index"
         @mouseup="mouseUp"
+        draggable="true" 
+        ondragstart="drag(event)"
     >
 
         <div :class="event.classes" :key="`opacity${opacity}`" :style="`opacity:${opacity}`" class="animated fadeIn rounded-lg px-2 py-3">

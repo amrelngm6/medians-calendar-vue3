@@ -19,7 +19,8 @@
         @mouseover.self="mouseMove()"
         @mousedown.self="mouseDown()"  
         @mouseup="mouseUp()"  
-
+        ondrop="drop(event)" 
+        ondragover="allowDrop(event)"
         >
         <div v-if="cellData.value" style="pointer-events: none;">
             <div  v-text="cellData.value.slice(11,16)">
@@ -27,6 +28,11 @@
             </div>
         </div>
     </div>
+
+
+            <div id="div1" class="w-full h-40 border" style="" ></div>
+
+            <img id="drag1" src="/uploads/images/Logo-63f4998214037.png" draggable="true" ondragstart="drag(event)" width="336" height="69">
 </template>
 <script>
 import { cloneObject, getLocaleTime } from './utils.js';

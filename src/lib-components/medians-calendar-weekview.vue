@@ -237,7 +237,7 @@ $theme-color: #e5e5e5;
 .sticky-top {
   position: sticky;
   top: 0;
-  z-index: 20;
+  z-index: 999;
   background-color: white;
 
   .days {
