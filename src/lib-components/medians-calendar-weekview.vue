@@ -72,6 +72,8 @@
           v-for="(device, index) in devices"
           :passed-time="passedTime"
           :ref="days[0].value.slice(0, 10)+'-day'+index"
+          @update-event="updateEvent"
+          @drap-start-event="draggedEvent"
         >
         </medians-calendar-days>
         </div>
@@ -89,6 +91,7 @@ import {
   getHourlessDate,
   addTimezoneInfo,
   getLocaleTime,
+  addMinutes,
 } from "./utils";
 
 export default {
@@ -128,7 +131,8 @@ export default {
   inject: ["medians_calendar_options"],
   data: () => ({
     hours: null,
-    days: []
+    days: [],
+    dragEvent: {}
   }),
   computed: {
     hoursVisible() {
@@ -149,6 +153,15 @@ export default {
     }
   },
   methods: {
+
+    draggedEvent(event)
+    {
+      this.dragEvent = event
+    },
+    updateEvent(device, cellData)
+    {
+      this.$emit('update-event', this.dragEvent, device, cellData);
+    },
     _isToday(day) {
       return isToday(day);
     },

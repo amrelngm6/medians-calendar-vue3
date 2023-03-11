@@ -10,17 +10,17 @@
             // 'being-created': !!being_created || hasPopups,
         }"
         :style="
-            `
-      height: ${medians_calendar_options.cell_height}px;
-    `
+            `height: ${medians_calendar_options.cell_height}px; `
         "
         @mouseover="showBgHover = true; "
         @mouseout="showBgHover = false; "
         @mouseover.self="mouseMove()"
         @mousedown.self="mouseDown()"  
         @mouseup="mouseUp()"  
-        ondrop="drop(event)" 
-        ondragover="allowDrop(event)"
+        @dragover.prevent
+        @dragenter.prevent
+        @drop="dropStart(cellData)"
+        @dragover="showBgHover = true"
         >
         <div v-if="cellData.value" style="pointer-events: none;">
             <div  v-text="cellData.value.slice(11,16)">
@@ -29,10 +29,6 @@
         </div>
     </div>
 
-
-            <div id="div1" class="w-full h-40 border" style="" ></div>
-
-            <img id="drag1" src="/uploads/images/Logo-63f4998214037.png" draggable="true" ondragstart="drag(event)" width="336" height="69">
 </template>
 <script>
 import { cloneObject, getLocaleTime } from './utils.js';
@@ -58,6 +54,11 @@ export default {
         
     },
     methods: {
+        dropStart(cellData)
+        { 
+            this.$emit('dragEnd', cellData, this.device)
+
+        },
         mouseDown() {
 
             // user mouse got depressed while outside medians-calendar-cells

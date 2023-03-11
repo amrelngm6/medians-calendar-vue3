@@ -25,6 +25,7 @@
                 @reset="resetEvents()" 
                 @initiatePopup="initiatePopup()" 
                 :temporary-event="temporary_event" 
+                @dragEnd="dragEnd"
                 />
         </div>
 
@@ -36,6 +37,7 @@
                 :total="day_events.length"
                 :index="eventIndex"
                 :column_index="column_index"
+                @dragStart="dragStart"
             />
         <div class="w-full absolute top-0 left-0" style="z-index: 9999;">
             
@@ -100,9 +102,19 @@ export default {
 
         // day cells and events are used for rendering purposes
         day_cells: [],
-        day_events: null
+        day_events: null,
     }),
     methods: {
+
+        dragStart: function (event)  {
+            this.$emit('drap-start-event', event)
+        },
+
+        dragEnd(cellData, device)   {
+            let t = this;
+            t.$emit('update-event', device, cellData)
+        },
+
         renderDay() {
             myWorker
                 .send("getDayCells", {

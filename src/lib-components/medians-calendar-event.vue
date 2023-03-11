@@ -21,9 +21,9 @@
         }"
         :id="'event-'+index"
         @mouseup="mouseUp"
-        draggable="true" 
-        ondragstart="drag(event)"
-    >
+        draggable
+        @dragstart="dragStart(event)"
+        >
 
         <div :class="event.classes" :key="`opacity${opacity}`" :style="`opacity:${opacity}`" class="animated fadeIn rounded-lg px-2 py-3">
             <portal-target
@@ -102,6 +102,11 @@ export default {
 
     },
     methods: {
+        dragStart(event)
+        {
+            this.$parent.dragEvent = event;
+            this.$emit('dragStart', event)
+        },
         mouseUp()
         {
             if (this.event.status == 'canceled')

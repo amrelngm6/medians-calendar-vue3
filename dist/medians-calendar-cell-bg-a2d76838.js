@@ -1,5 +1,6 @@
-import { j as getLocaleTime, c as cloneObject, b as _objectSpread2, d as __vue_normalize__, e as __vue_create_injector__ } from './index-b215a0d3.js';
+import { j as getLocaleTime, c as cloneObject, b as _objectSpread2, d as __vue_normalize__, e as __vue_create_injector__ } from './index-34847f35.js';
 import 'vue';
+import 'moment';
 
 var script = {
   date: function date() {
@@ -12,11 +13,14 @@ var script = {
   inject: ['medians_calendar_options'],
   components: {
     MediansCalendarEvent: function MediansCalendarEvent() {
-      return import('./medians-calendar-event-469ac6f3.js');
+      return import('./medians-calendar-event-37182cc0.js');
     }
   },
   computed: {},
   methods: {
+    dropStart: function dropStart(cellData) {
+      this.$emit('dragEnd', cellData, this.device);
+    },
     mouseDown: function mouseDown() {
       // user mouse got depressed while outside medians-calendar-cells
       // came back in and clicked while the creator was on
@@ -125,11 +129,7 @@ var __vue_render__ = function __vue_render__() {
       'bg-blue-200': _vm.showBgSelect
       // 'being-created': !!being_created || hasPopups,
     },
-    style: "\n  height: " + _vm.medians_calendar_options.cell_height + "px;\n",
-    attrs: {
-      "ondrop": "drop(event)",
-      "ondragover": "allowDrop(event)"
-    },
+    style: "height: " + _vm.medians_calendar_options.cell_height + "px; ",
     on: {
       "mouseover": [function ($event) {
         _vm.showBgHover = true;
@@ -150,6 +150,17 @@ var __vue_render__ = function __vue_render__() {
       },
       "mouseup": function mouseup($event) {
         return _vm.mouseUp();
+      },
+      "dragover": [function ($event) {
+        $event.preventDefault();
+      }, function ($event) {
+        _vm.showBgHover = true;
+      }],
+      "dragenter": function dragenter($event) {
+        $event.preventDefault();
+      },
+      "drop": function drop($event) {
+        return _vm.dropStart(_vm.cellData);
       }
     }
   }, [_vm.cellData.value ? _c('div', {
@@ -167,7 +178,7 @@ var __vue_staticRenderFns__ = [];
 /* style */
 var __vue_inject_styles__ = function __vue_inject_styles__(inject) {
   if (!inject) return;
-  inject("data-v-5e899019_0", {
+  inject("data-v-163d3ceb_0", {
     source: "li{font-size:13px;position:relative}.created-events{height:100%}.cell-bg div{display:none}.cell-bg:active div,.cell-bg:hover div{display:block}ul.building-blocks li{z-index:0;border-bottom:dotted 1px var(--odd-cell-border-color)}ul.building-blocks li.first_of_appointment{z-index:1;opacity:1}ul.building-blocks li.is-an-hour{border-bottom:solid 1px var(--table-cell-border-color)}ul.building-blocks li.has-events{z-index:unset}ul.building-blocks li.being-created{z-index:11}",
     map: undefined,
     media: undefined

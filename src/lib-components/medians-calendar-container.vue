@@ -95,64 +95,20 @@
             </div>
         </div>
 
-        <medians-calendar-week-view :events="medians_calendar_events" v-if="showCalendar" :key="current_day" :current_day="current_day" :devices="devices" />
+        <medians-calendar-week-view 
+            :events="medians_calendar_events" 
+            v-if="showCalendar" 
+            :key="current_day" 
+            :current_day="current_day" 
+            :devices="devices" 
+            @update-event="updateEvent"
+            />
 
-
-        <div v-if="showPopup">
-            <div v-if="showModal && activeItem && !activeItem.id" class="fixed top-0 left-0 w-full h-full"  style="z-index: 99;">
-                <div class="absolute top-0 left-0 w-full h-full" @click="hidePopup" style="background: rgba(0,0,0,.6);"></div>
-                <div class="left-0 right-0 fixed mx-auto w-full " style="max-width: 600px; z-index: 99;" >
-                    <div class="relative h-full ">
-                        <calendar_new_item :modal="activeItem" :games="activeItem.device ? activeItem.device.games : []"></calendar_new_item>
-                    </div>
-                </div>
-            </div>  
-
-            <div v-if="showModal && activeItem && activeItem.id" class="fixed top-0 left-0 w-full h-full"  style="z-index: 99;">
-                <div class="absolute top-0 left-0 w-full h-full" @click="hidePopup" style="background: rgba(0,0,0,.6);"></div>
-                <div class="left-0 right-0 fixed mx-auto w-full " style="max-width: 600px; z-index: 99;" >
-                    <div class="relative h-full ">
-
-                        <!-- Confirm overlay -->
-                        <div class="top-20 relative mx-auto w-full bg-white p-6 rounded-lg" style="max-width: 600px; z-index: 99;" v-if="showConfirm">
-                            
-                            <div class="bg-blue-200 rounded-md py-2 px-4" role="alert">
-                                <strong v-text="__('confirm')"></strong> <span v-text="__('confirm_complete_booking')"></span> 
-                                <button @click="showConfirm = false" type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                            </div>
-
-                            <div  class="my-2 cursor-pointer w-full text-white  font-semibold py-2 border-b border-gray-200">
-                                <label @click="activeItem.status = 'completed'; submit('Event.update', activeItem)" class="w-32 mx-auto py-2 rounded-lg bg-gradient-primary block text-center cursor-pointer" v-text="__('confirm')"></label>
-                            </div>
-
-                        </div>
-                        
-                        <calendar_active_item :modal="activeItem"></calendar_active_item>
-                    </div>
-                </div>
-            </div>  
-
-            <div v-if="showBooking && activeItem" class="fixed top-0 left-0 w-full h-full"  style="z-index: 99;">
-                <div class="absolute top-0 left-0 w-full h-full" @click="hidePopup" style="background: rgba(0,0,0,.6);"></div>
-                <div class="left-0 right-0 fixed mx-auto w-full " style="max-width: 600px; z-index: 99;" >
-                    <div class="relative h-full ">
-                        <calendar_modal :modal="activeItem"></calendar_modal>
-                    </div>
-                </div>
-            </div>  
-        </div>
-
-        <div class="w-full h-full fixed top-0 left-0" v-if="showCart" style="z-index:999">
-            
-            <div v-if="showCart" @click="showCart = false ; hidePopup" class="fixed h-full w-full top-0 left-0 bg-gray-800" style="opacity: .6; z-index:9"></div>
-
-            <side_cart  v-if="showCart" ref="side_cart" :setting="settings" :currency="settings.currency"></side_cart>
-
-        </div>
     </div>
 </template>
 <script>
 import Vue from 'vue';
+import moment from 'moment';
 
 import {
     cloneObject,
@@ -169,6 +125,7 @@ import {
 export default {
     components: {
         MediansCalendarWeekView: () => import('./medians-calendar-weekview.vue'),
+        moment
     },
     props: {
         // this provided array will be kept in sync
@@ -259,6 +216,7 @@ export default {
             let provided_props = this.configuration;
 
             let conditions = {
+                events_url: val => ['/'].includes(val),
                 scrollToNow: val => typeof val === 'boolean',
                 hourlySelection: val => typeof val === 'boolean',
                 start_day: val => !isNaN(Date.parse(val)),
@@ -316,91 +274,31 @@ export default {
         return provider;
     },
     methods: {
-        getTime,
+
+        /**
+         * Change calendar date
+         */
         changeDay(numDays) {
-            this.current_day = addDays(this.current_day, numDays).toISOString();
+            this.current_day = moment(this.current_day).add(numDays, 'days').format('YYYY-MM-DD');
             setTimeout(() => this.reloadEvents());
         },
-        addAppointment(popup_info) {
-            let payload = {
-                data: {
-                    title: this.new_appointment.title,
-                    description: this.new_appointment.description,
-                },
-                from: popup_info.start_time,
-                to: popup_info.end_time,
-            };
 
-            this.$medians_calendar.closePopups();
-            this.clearFormData();
-        },
-        clearFormData() {
-            this.new_appointment = {
-                description: null,
-                title: null,
-            };
-        },
-        closePopups() {
-            this.$medians_calendar.closePopups();
-        },
-
-        addToCart(activeItem)
-        {
-            let item = {};
-            this.showCart = true;
-            if (activeItem)
-            {
-                item.id = activeItem.id;
-                item.device = activeItem.device;
-                item.price = activeItem.price;
-                item.duration_time = activeItem.duration_time;
-                item.duration_hours = activeItem.duration_hours;
-                item.subtotal = activeItem.subtotal;
-                item.game = activeItem.game;
-                item.products = activeItem.products;
-            }
-            // this.$refs.side_cart.showCart = true
-            // this.$parent.showSide = false;
-            this.hidePopup(false);
-            var t = this;
-
-            setTimeout(function () {
-                t.$refs.side_cart ? t.$refs.side_cart.addToCart(item) : null;
-            }, 1000)
-        },
         /**
          * Update event data
          */
         updateInfo(activeItem)
         {
             this.showPopup = false; 
+            this.$emit('update-info', activeItem)
             this.showPopup = true
 
             return this;
-        } ,
-
-        log(data)
-        {
-            this.$parent.log(data);
         },
+
 
         show_modal(item = null){
             this.showPopup = false; 
-            if (item)
-            {
-                if (item.id && item.status && item.status == 'active')
-                    this.setActiveItem(item);
-
-                if (item.status && item.status == 'completed')
-                    this.show_event(item);
-
-                if (item.status && item.status == 'paid')
-                    this.show_event(item);
-
-                if (!item.id)
-                    this.setNewItem(item);
-            }
-
+            this.$emit('show_modal', item);
             this.showPopup = true; 
 
         },
@@ -408,6 +306,7 @@ export default {
         show_event(item = null){
             this.showModal = false;
             this.setEvent(item);
+            this.$emit('show_event', item);
             this.showBooking = true;
         },
 
@@ -434,21 +333,20 @@ export default {
          */
         setNewItem(newEvenet)
         {
-            if (newEvenet.ending_cell.value === newEvenet.starting_cell.value)
-            {
-                let d = this.addTime(newEvenet.ending_cell.value, 60);
-                newEvenet.ending_cell.value = this.dateText(d)+'T'+this.dateTime(d)+':00.000Z';
-            }
+            let startDate = moment(newEvenet.starting_cell.time);
+
+            let endDate = (newEvenet.ending_cell.value === newEvenet.starting_cell.value) 
+            ? moment(newEvenet.ending_cell.time).add(60, 'minutes')
+            : moment(newEvenet.ending_cell.time);
 
             this.activeItem = cloneObject(newEvenet)
             this.games = newEvenet.device ? newEvenet.device.games : []
             this.activeItem.device_id = newEvenet.device ? newEvenet.device.id : 0
-            this.activeItem.start = newEvenet.starting_cell ? this.dateTime(newEvenet.starting_cell.value) : null
-            this.activeItem.start_time = newEvenet.starting_cell ? newEvenet.starting_cell.time  : null
-            this.activeItem.end = newEvenet.ending_cell ? this.dateTime(newEvenet.ending_cell.value)  : null
-            this.activeItem.end_time = newEvenet.ending_cell ? newEvenet.ending_cell.time  : null
-            this.activeItem.date = newEvenet.starting_cell ? this.dateText(newEvenet.starting_cell.value)  : null
-            this.activeItem.booking_type = 'single'
+            this.activeItem.start = startDate.format('HH:mm')
+            this.activeItem.start_time = startDate.format('YYYY-MM-DD HH:mm')
+            this.activeItem.end = endDate.format('HH:mm')
+            this.activeItem.end_time = endDate.format('YYYY-MM-DD HH:mm')
+            this.activeItem.date = endDate.format('YYYY-MM-DD')
             this.showModal = true
             return this;
         },
@@ -493,7 +391,25 @@ export default {
         storeInfo(activeItem)
         {
             this.submit('Event.create', activeItem)
-        } ,
+        },
+
+
+        /**
+         * Update event data
+         */
+        updateEvent(event, device, cellData)
+        {
+
+            let newEvent = cloneObject(event)
+            newEvent.from = moment(cellData.time).format('YYYY-MM-DD HH:mm');
+            newEvent.to = moment(cellData.time).add(event.duration, 'minutes').format('YYYY-MM-DD HH:mm');
+            newEvent.device_id = device.id;
+            this.submit('Event.update', newEvent);
+            this.log(newEvent)
+        },
+
+        
+
         /**
          * Update event data
          */
@@ -542,7 +458,7 @@ export default {
          */
         async loadEvents()
         {
-            return await this.handleGetRequest('/api/calendar_events?start='+this.current_day+'&end='+addDays(this.current_day, 1).toISOString()).then(response => {
+            return await this.handleGetRequest( this.medians_calendar_options.events_url + '?start='+this.current_day+'&end='+addDays(this.current_day, 1).toISOString()).then(response => {
                 this.medians_calendar_events = response;
                 return this;
             });
@@ -556,6 +472,11 @@ export default {
 
         async handleRequest(params, url='/') {
             return await this.$parent.handleRequest(params, url);
+        },
+
+        log(data)
+        {
+            this.$parent.log(data);
         },
         __(i)
         {

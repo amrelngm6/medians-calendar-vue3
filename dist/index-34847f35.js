@@ -1,4 +1,5 @@
 import Vue from 'vue';
+import moment from 'moment';
 
 function _iterableToArrayLimit(arr, i) {
   var _i = null == arr ? null : "undefined" != typeof Symbol && arr[Symbol.iterator] || arr["@@iterator"];
@@ -460,12 +461,6 @@ var getDatelessHour = function getDatelessHour(date_string, military) {
   if (military) return getLocaleTime(time).slice(11, 16);
   return formatAMPM(new Date(getLocaleTime(time)));
 };
-var getTime = function getTime(date) {
-  var dateObj = new Date(date);
-  var minutes = dateObj.getUTCHours().toString().padStart(2, "0");
-  var seconds = dateObj.getUTCMinutes().toString().padStart(2, "0");
-  return "".concat(minutes, ":").concat(seconds);
-};
 var addDays = function addDays(date, days) {
   var dateObj = new Date(date);
   dateObj.setUTCHours(0, 0, 0, 0);
@@ -543,8 +538,9 @@ var getTopDistance = function getTopDistance(start) {
 var script = {
   components: {
     MediansCalendarWeekView: function MediansCalendarWeekView() {
-      return import('./medians-calendar-weekview-ee6e27cf.js');
-    }
+      return import('./medians-calendar-weekview-d7c356de.js');
+    },
+    moment: moment
   },
   props: {
     // this provided array will be kept in sync
@@ -630,6 +626,9 @@ var script = {
       var options = this.default_options;
       var provided_props = this.configuration;
       var conditions = {
+        events_url: function events_url(val) {
+          return ['/'].includes(val);
+        },
         scrollToNow: function scrollToNow(val) {
           return typeof val === 'boolean';
         },
@@ -721,82 +720,36 @@ var script = {
     return provider;
   },
   methods: {
-    getTime: getTime,
+    /**
+     * Change calendar date
+     */
     changeDay: function changeDay(numDays) {
       var _this4 = this;
-      this.current_day = addDays(this.current_day, numDays).toISOString();
+      this.current_day = moment(this.current_day).add(numDays, 'days').format('YYYY-MM-DD');
       setTimeout(function () {
         return _this4.reloadEvents();
       });
-    },
-    addAppointment: function addAppointment(popup_info) {
-      var payload = {
-        data: {
-          title: this.new_appointment.title,
-          description: this.new_appointment.description
-        },
-        from: popup_info.start_time,
-        to: popup_info.end_time
-      };
-      this.$medians_calendar.closePopups();
-      this.clearFormData();
-    },
-    clearFormData: function clearFormData() {
-      this.new_appointment = {
-        description: null,
-        title: null
-      };
-    },
-    closePopups: function closePopups() {
-      this.$medians_calendar.closePopups();
-    },
-    addToCart: function addToCart(activeItem) {
-      var item = {};
-      this.showCart = true;
-      if (activeItem) {
-        item.id = activeItem.id;
-        item.device = activeItem.device;
-        item.price = activeItem.price;
-        item.duration_time = activeItem.duration_time;
-        item.duration_hours = activeItem.duration_hours;
-        item.subtotal = activeItem.subtotal;
-        item.game = activeItem.game;
-        item.products = activeItem.products;
-      }
-      // this.$refs.side_cart.showCart = true
-      // this.$parent.showSide = false;
-      this.hidePopup(false);
-      var t = this;
-      setTimeout(function () {
-        t.$refs.side_cart ? t.$refs.side_cart.addToCart(item) : null;
-      }, 1000);
     },
     /**
      * Update event data
      */
     updateInfo: function updateInfo(activeItem) {
       this.showPopup = false;
+      this.$emit('update-info', activeItem);
       this.showPopup = true;
       return this;
-    },
-    log: function log(data) {
-      this.$parent.log(data);
     },
     show_modal: function show_modal() {
       var item = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
       this.showPopup = false;
-      if (item) {
-        if (item.id && item.status && item.status == 'active') this.setActiveItem(item);
-        if (item.status && item.status == 'completed') this.show_event(item);
-        if (item.status && item.status == 'paid') this.show_event(item);
-        if (!item.id) this.setNewItem(item);
-      }
+      this.$emit('show_modal', item);
       this.showPopup = true;
     },
     show_event: function show_event() {
       var item = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
       this.showModal = false;
       this.setEvent(item);
+      this.$emit('show_event', item);
       this.showBooking = true;
     },
     addTime: function addTime(time) {
@@ -818,19 +771,16 @@ var script = {
      * 
      */
     setNewItem: function setNewItem(newEvenet) {
-      if (newEvenet.ending_cell.value === newEvenet.starting_cell.value) {
-        var d = this.addTime(newEvenet.ending_cell.value, 60);
-        newEvenet.ending_cell.value = this.dateText(d) + 'T' + this.dateTime(d) + ':00.000Z';
-      }
+      var startDate = moment(newEvenet.starting_cell.time);
+      var endDate = newEvenet.ending_cell.value === newEvenet.starting_cell.value ? moment(newEvenet.ending_cell.time).add(60, 'minutes') : moment(newEvenet.ending_cell.time);
       this.activeItem = cloneObject(newEvenet);
       this.games = newEvenet.device ? newEvenet.device.games : [];
       this.activeItem.device_id = newEvenet.device ? newEvenet.device.id : 0;
-      this.activeItem.start = newEvenet.starting_cell ? this.dateTime(newEvenet.starting_cell.value) : null;
-      this.activeItem.start_time = newEvenet.starting_cell ? newEvenet.starting_cell.time : null;
-      this.activeItem.end = newEvenet.ending_cell ? this.dateTime(newEvenet.ending_cell.value) : null;
-      this.activeItem.end_time = newEvenet.ending_cell ? newEvenet.ending_cell.time : null;
-      this.activeItem.date = newEvenet.starting_cell ? this.dateText(newEvenet.starting_cell.value) : null;
-      this.activeItem.booking_type = 'single';
+      this.activeItem.start = startDate.format('HH:mm');
+      this.activeItem.start_time = startDate.format('YYYY-MM-DD HH:mm');
+      this.activeItem.end = endDate.format('HH:mm');
+      this.activeItem.end_time = endDate.format('YYYY-MM-DD HH:mm');
+      this.activeItem.date = endDate.format('YYYY-MM-DD');
       this.showModal = true;
       return this;
     },
@@ -867,6 +817,17 @@ var script = {
      */
     storeInfo: function storeInfo(activeItem) {
       this.submit('Event.create', activeItem);
+    },
+    /**
+     * Update event data
+     */
+    updateEvent: function updateEvent(event, device, cellData) {
+      var newEvent = cloneObject(event);
+      newEvent.from = moment(cellData.time).format('YYYY-MM-DD HH:mm');
+      newEvent.to = moment(cellData.time).add(event.duration, 'minutes').format('YYYY-MM-DD HH:mm');
+      newEvent.device_id = device.id;
+      this.submit('Event.update', newEvent);
+      this.log(newEvent);
     },
     /**
      * Update event data
@@ -928,7 +889,7 @@ var script = {
           while (1) switch (_context2.prev = _context2.next) {
             case 0:
               _context2.next = 2;
-              return _this7.handleGetRequest('/api/calendar_events?start=' + _this7.current_day + '&end=' + addDays(_this7.current_day, 1).toISOString()).then(function (response) {
+              return _this7.handleGetRequest(_this7.medians_calendar_options.events_url + '?start=' + _this7.current_day + '&end=' + addDays(_this7.current_day, 1).toISOString()).then(function (response) {
                 _this7.medians_calendar_events = response;
                 return _this7;
               });
@@ -977,6 +938,9 @@ var script = {
           }
         }, _callee4);
       }))();
+    },
+    log: function log(data) {
+      this.$parent.log(data);
     },
     __: function __(i) {
       return this.$parent.__(i);
@@ -1251,158 +1215,18 @@ var __vue_render__ = function __vue_render__() {
       "events": _vm.medians_calendar_events,
       "current_day": _vm.current_day,
       "devices": _vm.devices
-    }
-  }) : _vm._e(), _vm._v(" "), _vm.showPopup ? _c('div', [_vm.showModal && _vm.activeItem && !_vm.activeItem.id ? _c('div', {
-    staticClass: "fixed top-0 left-0 w-full h-full",
-    staticStyle: {
-      "z-index": "99"
-    }
-  }, [_c('div', {
-    staticClass: "absolute top-0 left-0 w-full h-full",
-    staticStyle: {
-      "background": "rgba(0,0,0,.6)"
     },
     on: {
-      "click": _vm.hidePopup
+      "update-event": _vm.updateEvent
     }
-  }), _vm._v(" "), _c('div', {
-    staticClass: "left-0 right-0 fixed mx-auto w-full",
-    staticStyle: {
-      "max-width": "600px",
-      "z-index": "99"
-    }
-  }, [_c('div', {
-    staticClass: "relative h-full"
-  }, [_c('calendar_new_item', {
-    attrs: {
-      "modal": _vm.activeItem,
-      "games": _vm.activeItem.device ? _vm.activeItem.device.games : []
-    }
-  })], 1)])]) : _vm._e(), _vm._v(" "), _vm.showModal && _vm.activeItem && _vm.activeItem.id ? _c('div', {
-    staticClass: "fixed top-0 left-0 w-full h-full",
-    staticStyle: {
-      "z-index": "99"
-    }
-  }, [_c('div', {
-    staticClass: "absolute top-0 left-0 w-full h-full",
-    staticStyle: {
-      "background": "rgba(0,0,0,.6)"
-    },
-    on: {
-      "click": _vm.hidePopup
-    }
-  }), _vm._v(" "), _c('div', {
-    staticClass: "left-0 right-0 fixed mx-auto w-full",
-    staticStyle: {
-      "max-width": "600px",
-      "z-index": "99"
-    }
-  }, [_c('div', {
-    staticClass: "relative h-full"
-  }, [_vm.showConfirm ? _c('div', {
-    staticClass: "top-20 relative mx-auto w-full bg-white p-6 rounded-lg",
-    staticStyle: {
-      "max-width": "600px",
-      "z-index": "99"
-    }
-  }, [_c('div', {
-    staticClass: "bg-blue-200 rounded-md py-2 px-4",
-    attrs: {
-      "role": "alert"
-    }
-  }, [_c('strong', {
-    domProps: {
-      "textContent": _vm._s(_vm.__('confirm'))
-    }
-  }), _vm._v(" "), _c('span', {
-    domProps: {
-      "textContent": _vm._s(_vm.__('confirm_complete_booking'))
-    }
-  }), _vm._v(" "), _c('button', {
-    staticClass: "btn-close",
-    attrs: {
-      "type": "button",
-      "data-bs-dismiss": "alert",
-      "aria-label": "Close"
-    },
-    on: {
-      "click": function click($event) {
-        _vm.showConfirm = false;
-      }
-    }
-  })]), _vm._v(" "), _c('div', {
-    staticClass: "my-2 cursor-pointer w-full text-white font-semibold py-2 border-b border-gray-200"
-  }, [_c('label', {
-    staticClass: "w-32 mx-auto py-2 rounded-lg bg-gradient-primary block text-center cursor-pointer",
-    domProps: {
-      "textContent": _vm._s(_vm.__('confirm'))
-    },
-    on: {
-      "click": function click($event) {
-        _vm.activeItem.status = 'completed';
-        _vm.submit('Event.update', _vm.activeItem);
-      }
-    }
-  })])]) : _vm._e(), _vm._v(" "), _c('calendar_active_item', {
-    attrs: {
-      "modal": _vm.activeItem
-    }
-  })], 1)])]) : _vm._e(), _vm._v(" "), _vm.showBooking && _vm.activeItem ? _c('div', {
-    staticClass: "fixed top-0 left-0 w-full h-full",
-    staticStyle: {
-      "z-index": "99"
-    }
-  }, [_c('div', {
-    staticClass: "absolute top-0 left-0 w-full h-full",
-    staticStyle: {
-      "background": "rgba(0,0,0,.6)"
-    },
-    on: {
-      "click": _vm.hidePopup
-    }
-  }), _vm._v(" "), _c('div', {
-    staticClass: "left-0 right-0 fixed mx-auto w-full",
-    staticStyle: {
-      "max-width": "600px",
-      "z-index": "99"
-    }
-  }, [_c('div', {
-    staticClass: "relative h-full"
-  }, [_c('calendar_modal', {
-    attrs: {
-      "modal": _vm.activeItem
-    }
-  })], 1)])]) : _vm._e()]) : _vm._e(), _vm._v(" "), _vm.showCart ? _c('div', {
-    staticClass: "w-full h-full fixed top-0 left-0",
-    staticStyle: {
-      "z-index": "999"
-    }
-  }, [_vm.showCart ? _c('div', {
-    staticClass: "fixed h-full w-full top-0 left-0 bg-gray-800",
-    staticStyle: {
-      "opacity": ".6",
-      "z-index": "9"
-    },
-    on: {
-      "click": function click($event) {
-        _vm.showCart = false;
-        _vm.hidePopup;
-      }
-    }
-  }) : _vm._e(), _vm._v(" "), _vm.showCart ? _c('side_cart', {
-    ref: "side_cart",
-    attrs: {
-      "setting": _vm.settings,
-      "currency": _vm.settings.currency
-    }
-  }) : _vm._e()], 1) : _vm._e()], 1);
+  }) : _vm._e()], 1);
 };
 var __vue_staticRenderFns__ = [];
 
 /* style */
 var __vue_inject_styles__ = function __vue_inject_styles__(inject) {
   if (!inject) return;
-  inject("data-v-26a1d465_0", {
+  inject("data-v-3b0ec85f_0", {
     source: "*{box-sizing:border-box}.medians-calendar-wrapper{font-family:-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\",\"Segoe UI Symbol\";min-height:1440px;--main-color:#ec4d3d;--weekend-color:#f7f7f7;--current-day-color:#fef4f4;--table-cell-border-color:#e5e5e5;--odd-cell-border-color:#e5e5e5;--hour-row-color:inherit;--dark:#212121;--lightg:#9e9e9e;--card-bgcolor:#4285f4;--card-color:white;--max-hours:10;--previous-events:#c6dafc;--previous-text-color:#727d8f}.medians-calendar-wrapper.gstyle{--hour-row-color:#212121;--main-color:#4285f4;--weekend-color:transparent;--current-day-color:transparent;--table-cell-border-color:#e0e0e0;--odd-cell-border-color:transparent;font-family:\"Google Sans\",Roboto,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Arial,sans-serif}.medians-calendar-wrapper.gstyle .week-navigator{background:#fff;border-bottom:none;padding:20px;color:rgba(0,0,0,.54)}.medians-calendar-wrapper.gstyle .week-navigator button{color:rgba(0,0,0,.54)}.medians-calendar-wrapper.gstyle .created-event,.medians-calendar-wrapper.gstyle .creating-event{background-color:var(--card-bgcolor);color:var(--card-color);text-shadow:none;border-left:none;border-radius:2px;opacity:1;border-bottom:solid 1px rgba(0,0,0,.03)}.medians-calendar-wrapper.gstyle .created-event>*,.medians-calendar-wrapper.gstyle .creating-event>*{text-shadow:none}.medians-calendar-wrapper.gstyle .is-past .created-event,.medians-calendar-wrapper.gstyle .is-past .creating-event{background-color:var(--previous-events);color:var(--previous-text-color)}.medians-calendar-wrapper.gstyle .created-event{width:96%}.medians-calendar-wrapper.gstyle .created-event .time{right:2px}.medians-calendar-wrapper.gstyle .sticky-top .days{margin-left:0;padding-left:55px}.medians-calendar-wrapper.gstyle .all-day{display:none}.medians-calendar-wrapper.gstyle ul.building-blocks.day-1 li.is-an-hour::before{content:\"\";position:absolute;bottom:-1px;left:-10px;width:10px;height:1px;background-color:var(--table-cell-border-color)}.medians-calendar-wrapper.gstyle .hours,.medians-calendar-wrapper.gstyle ul.building-blocks li{border-right:solid 1px var(--table-cell-border-color)}.medians-calendar-wrapper.gstyle .hours li{font-size:80%}.medians-calendar-wrapper.gstyle .hour-indicator-line>span.line{height:2px;background-color:#db4437}.medians-calendar-wrapper.gstyle .hour-indicator-line>span.line:before{content:\"\";width:12px;height:12px;display:block;background-color:#db4437;position:absolute;top:-1px;left:0;border-radius:100%}.medians-calendar-wrapper.gstyle .days{border-top:solid 1px var(--table-cell-border-color);position:relative}.medians-calendar-wrapper.gstyle .days:before{content:\"\";position:absolute;height:1px;width:55px;left:0;bottom:0;background-color:var(--table-cell-border-color)}.medians-calendar-wrapper.gstyle .day-indicator{display:flex;flex-direction:column;align-items:center;color:var(--dark);font-size:13px;padding-left:0;border-right:solid 1px var(--table-cell-border-color)}.medians-calendar-wrapper.gstyle .day-indicator>div{display:flex;flex-direction:column;align-items:center}.medians-calendar-wrapper.gstyle .day-indicator.is-before{color:#757575}.medians-calendar-wrapper.gstyle .day-indicator .number-date{margin-left:0;margin-right:0;order:2;font-size:16px;font-weight:500;width:28px;height:28px;border-radius:100%;align-items:center;justify-content:center;display:flex;margin-top:4px}.medians-calendar-wrapper.gstyle .day-indicator.today{border-bottom-color:var(--table-cell-border-color)}.medians-calendar-wrapper.gstyle .day-indicator.today:after{display:none}.medians-calendar-wrapper.gstyle .day-indicator.today .number-date{background-color:var(--main-color);color:#fff}.medians-calendar-wrapper.gstyle .day-indicator .letters-date{margin-left:0;margin-right:0;font-weight:500;text-transform:uppercase;font-size:11px}.medians-calendar-wrapper.gstyle .day-indicator:first-child{position:relative}.medians-calendar-wrapper.gstyle .day-indicator:first-child::before{content:\"\";position:absolute;left:-1px;top:0;width:1px;height:100%;background-color:var(--table-cell-border-color)}.medians-calendar-wrapper.gstyle .creating-event,.medians-calendar-wrapper.gstyle .popup-wrapper{box-shadow:0 6px 10px 0 rgba(0,0,0,.14),0 1px 18px 0 rgba(0,0,0,.12),0 3px 5px -1px rgba(0,0,0,.2);transition:opacity .1s linear}.medians-calendar-wrapper.non-desktop .building-blocks{pointer-events:none}.medians-calendar-wrapper.day-view .day-indicator{align-items:flex-start;text-align:center;padding-left:10px}.created-event,.creating-event{padding:4px 6px;cursor:default;word-break:break-word;height:100%;width:100%;font-size:14px}.created-event h4,.creating-event h4{font-weight:400}.creating-event{background-color:#34aadc;opacity:.9}.creating-event>*{text-shadow:0 0 7px rgba(0,0,0,.25)}.created-event{background-color:#bfecff;opacity:.74;border-left:solid 3px #34aadc;color:#1f6570}.week-navigator{display:flex;align-items:center;background:linear-gradient(#fdfdfd,#f9f9f9);border-bottom:solid 1px #ec4d3d;padding:10px 20px}.week-navigator .nav-wrapper{display:flex;align-items:center;justify-content:space-between;font-size:22px;width:25ch;max-width:30ch;margin:0 auto}.week-navigator .nav-wrapper span{white-space:nowrap}.week-navigator button{background:0 0;border:none;padding:0;display:inline-flex;margin:0 10px;color:#ec4d3d;align-items:center;font-size:14px;padding-bottom:5px}.medians-calendar-wrapper{background-color:#fff;min-width:300px}.no-scroll{overflow-y:hidden;max-height:100%}.hour-indicator-line{position:absolute;z-index:2;width:100%;height:10px;display:flex;align-items:center;pointer-events:none;user-select:none}.hour-indicator-line>span.line{background-color:var(--main-color);height:1px;display:block;flex:1}.hour-indicator-line>span.time-value{font-size:14px;width:48px;color:var(--main-color);font-weight:600;background-color:#fff}.hour-indicator-tooltip{position:absolute;z-index:0;background-color:var(--main-color);width:10px;height:10px;display:block;border-radius:100%;pointer-events:none;user-select:none}ul.medians-calendar-day li.medians-calendar-cell:last-child{display:none}.week-navigator-button{outline:0}.week-navigator-button:active svg,.week-navigator-button:hover svg{stroke:var(--main-color)}",
     map: undefined,
     media: undefined
