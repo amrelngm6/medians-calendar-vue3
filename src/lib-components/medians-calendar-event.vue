@@ -59,7 +59,7 @@ export default {
             return isBefore(this.event.start.value, now);
         },
         width_value() {
-            return `calc(100% - 10px)`;
+            return `calc(100% - 20px)`;
         },
         left_offset() {
             return `10px`;
@@ -104,6 +104,12 @@ export default {
     methods: {
         dragStart(event)
         {
+
+            if (this.event.status == 'canceled')
+            {
+                this.$alert(this.$root.__('this_is_canceled_event'))
+                return false;
+            }
             this.$parent.dragEvent = event;
             this.$emit('dragStart', event)
         },
@@ -112,8 +118,9 @@ export default {
             if (this.event.status == 'canceled')
             {
                 this.$alert(this.$root.__('this_is_canceled_event'))
+            } else {
+                this.$parent.show_modal(this.event);
             }
-            this.$parent.show_modal(this.event);
         },
         log(data)
         {

@@ -461,14 +461,17 @@ var getDatelessHour = function getDatelessHour(date_string, military) {
   if (military) return getLocaleTime(time).slice(11, 16);
   return formatAMPM(new Date(getLocaleTime(time)));
 };
+var getTime = function getTime(date) {
+  var dateObj = new Date(date);
+  var minutes = dateObj.getUTCHours().toString().padStart(2, "0");
+  var seconds = dateObj.getUTCMinutes().toString().padStart(2, "0");
+  return "".concat(minutes, ":").concat(seconds);
+};
 var addDays = function addDays(date, days) {
   var dateObj = new Date(date);
   dateObj.setUTCHours(0, 0, 0, 0);
   dateObj.setDate(dateObj.getDate() + days);
   return dateObj;
-};
-var addMinutes = function addMinutes(date, minutes) {
-  return new Date(date.getTime() + minutes * 60000);
 };
 var startOfWeek = function startOfWeek(date) {
   var d = new Date(date);
@@ -538,9 +541,8 @@ var getTopDistance = function getTopDistance(start) {
 var script = {
   components: {
     MediansCalendarWeekView: function MediansCalendarWeekView() {
-      return import('./medians-calendar-weekview-d7c356de.js');
-    },
-    moment: moment
+      return import('./medians-calendar-weekview-45168114.js');
+    }
   },
   props: {
     // this provided array will be kept in sync
@@ -579,6 +581,7 @@ var script = {
       events: [],
       current_day: getHourlessDate(),
       default_options: {
+        events_url: '/',
         cell_height: 10,
         scrollToNow: false,
         hourlySelection: false,
@@ -627,7 +630,7 @@ var script = {
       var provided_props = this.configuration;
       var conditions = {
         events_url: function events_url(val) {
-          return ['/'].includes(val);
+          return _typeof(val) != false;
         },
         scrollToNow: function scrollToNow(val) {
           return typeof val === 'boolean';
@@ -720,12 +723,10 @@ var script = {
     return provider;
   },
   methods: {
-    /**
-     * Change calendar date
-     */
+    getTime: getTime,
     changeDay: function changeDay(numDays) {
       var _this4 = this;
-      this.current_day = moment(this.current_day).add(numDays, 'days').format('YYYY-MM-DD');
+      this.current_day = addDays(this.current_day, numDays).toISOString();
       setTimeout(function () {
         return _this4.reloadEvents();
       });
@@ -734,54 +735,33 @@ var script = {
      * Update event data
      */
     updateInfo: function updateInfo(activeItem) {
-      this.showPopup = false;
       this.$emit('update-info', activeItem);
-      this.showPopup = true;
       return this;
     },
     show_modal: function show_modal() {
       var item = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
-      this.showPopup = false;
       this.$emit('show_modal', item);
-      this.showPopup = true;
     },
     show_event: function show_event() {
       var item = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
-      this.showModal = false;
-      this.setEvent(item);
       this.$emit('show_event', item);
-      this.showBooking = true;
     },
     addTime: function addTime(time) {
       var minutes = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
-      return addMinutes(new Date(time), minutes);
+      return moment(time).add(minutes, 'minutes');
     },
     dateTime: function dateTime(date) {
-      var d = new Date(date).toISOString();
-      var datestring = d.slice(11, 16);
-      return datestring;
+      return moment(date).format('HH:mm');
     },
     dateText: function dateText(date) {
-      var d = new Date(date).toISOString();
-      var datestring = d.slice(0, 10);
-      return datestring;
+      return moment(date).format('YYYY-MM-DD');
     },
     /** 
      * Set active item
      * 
      */
-    setNewItem: function setNewItem(newEvenet) {
-      var startDate = moment(newEvenet.starting_cell.time);
-      var endDate = newEvenet.ending_cell.value === newEvenet.starting_cell.value ? moment(newEvenet.ending_cell.time).add(60, 'minutes') : moment(newEvenet.ending_cell.time);
-      this.activeItem = cloneObject(newEvenet);
-      this.games = newEvenet.device ? newEvenet.device.games : [];
-      this.activeItem.device_id = newEvenet.device ? newEvenet.device.id : 0;
-      this.activeItem.start = startDate.format('HH:mm');
-      this.activeItem.start_time = startDate.format('YYYY-MM-DD HH:mm');
-      this.activeItem.end = endDate.format('HH:mm');
-      this.activeItem.end_time = endDate.format('YYYY-MM-DD HH:mm');
-      this.activeItem.date = endDate.format('YYYY-MM-DD');
-      this.showModal = true;
+    setNewItem: function setNewItem(newEvent) {
+      this.$emit('set-new-event', newEvent);
       return this;
     },
     /** 
@@ -789,16 +769,7 @@ var script = {
      * '
      */
     setActiveItem: function setActiveItem(props) {
-      this.activeItem = cloneObject(props);
-      this.games = props.device ? props.device.games : [];
-      this.activeItem.startStr = props.start;
-      this.activeItem.start = props.starting_cell ? this.dateTime(props.starting_cell.value) : null;
-      this.activeItem.start_time = props.starting_cell ? props.starting_cell.time : null;
-      this.activeItem.end = props.ending_cell ? this.dateTime(props.ending_cell.value) : null;
-      this.activeItem.end_time = props.ending_cell ? props.ending_cell.time : null;
-      this.activeItem.date = props.starting_cell ? this.dateText(props.starting_cell.value) : null;
-      this.activeItem.subtotal = this.subtotal();
-      this.showModal = true;
+      this.$emit('set-active-event', props);
       return this;
     },
     /** 
@@ -806,10 +777,7 @@ var script = {
      * '
      */
     setEvent: function setEvent(props) {
-      this.activeItem = cloneObject(props);
-      this.activeItem.startStr = props.start;
-      this.activeItem.subtotal = this.subtotal();
-      this.showModal = true;
+      this.$emit('set-event', props);
       return this;
     },
     /**
@@ -822,33 +790,15 @@ var script = {
      * Update event data
      */
     updateEvent: function updateEvent(event, device, cellData) {
-      var newEvent = cloneObject(event);
-      newEvent.from = moment(cellData.time).format('YYYY-MM-DD HH:mm');
-      newEvent.to = moment(cellData.time).add(event.duration, 'minutes').format('YYYY-MM-DD HH:mm');
-      newEvent.device_id = device.id;
-      this.submit('Event.update', newEvent);
-      this.log(newEvent);
+      this.$emit('update-event', event, device, cellData);
+      return this;
     },
     /**
      * Update event data
      */
     submit: function submit(type) {
-      var _this5 = this;
       var newitem = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
-      var item = newitem ? newitem : this.activeItem;
-      var request_type = type.includes('create') ? 'create' : 'update';
-      var params = new URLSearchParams([]);
-      item.start_time = this.current_day + ' ' + item.start;
-      item.end_time = this.current_day + ' ' + item.end;
-      params.append('type', type);
-      params.append('params[event]', JSON.stringify(item));
-      this.handleRequest(params, '/api/' + request_type).then(function (data) {
-        _this5.hidePopup();
-      });
-    },
-    subtotal: function subtotal() {
-      var price = this.activeItem.device_cost;
-      return (Number(price) * Number(this.activeItem.duration_hours)).toFixed(2);
+      this.$emit('submit', type, newitem);
     },
     hidePopup: function hidePopup() {
       var reload = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : true;
@@ -860,15 +810,15 @@ var script = {
       }
     },
     reloadEvents: function reloadEvents() {
-      var _this6 = this;
+      var _this5 = this;
       return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee() {
         return _regeneratorRuntime().wrap(function _callee$(_context) {
           while (1) switch (_context.prev = _context.next) {
             case 0:
-              _this6.showCalendar = false;
+              _this5.showCalendar = false;
               _context.next = 3;
-              return _this6.loadEvents().then(function (response) {
-                _this6.showCalendar = true;
+              return _this5.loadEvents().then(function (response) {
+                _this5.showCalendar = true;
               });
             case 3:
               return _context.abrupt("return", _context.sent);
@@ -883,15 +833,15 @@ var script = {
      * Load events 
      */
     loadEvents: function loadEvents() {
-      var _this7 = this;
+      var _this6 = this;
       return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2() {
         return _regeneratorRuntime().wrap(function _callee2$(_context2) {
           while (1) switch (_context2.prev = _context2.next) {
             case 0:
               _context2.next = 2;
-              return _this7.handleGetRequest(_this7.medians_calendar_options.events_url + '?start=' + _this7.current_day + '&end=' + addDays(_this7.current_day, 1).toISOString()).then(function (response) {
-                _this7.medians_calendar_events = response;
-                return _this7;
+              return _this6.handleGetRequest(_this6.medians_calendar_options.events_url + '?start=' + _this6.current_day + '&end=' + addDays(_this6.current_day, 1).toISOString()).then(function (response) {
+                _this6.medians_calendar_events = response;
+                return _this6;
               });
             case 2:
               return _context2.abrupt("return", _context2.sent);
@@ -903,13 +853,13 @@ var script = {
       }))();
     },
     handleGetRequest: function handleGetRequest(url) {
-      var _this8 = this;
+      var _this7 = this;
       return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3() {
         return _regeneratorRuntime().wrap(function _callee3$(_context3) {
           while (1) switch (_context3.prev = _context3.next) {
             case 0:
               _context3.next = 2;
-              return _this8.$parent.handleGetRequest(url);
+              return _this7.$parent.handleGetRequest(url);
             case 2:
               return _context3.abrupt("return", _context3.sent);
             case 3:
@@ -921,7 +871,7 @@ var script = {
     },
     handleRequest: function handleRequest(params) {
       var _arguments = arguments,
-        _this9 = this;
+        _this8 = this;
       return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4() {
         var url;
         return _regeneratorRuntime().wrap(function _callee4$(_context4) {
@@ -929,7 +879,7 @@ var script = {
             case 0:
               url = _arguments.length > 1 && _arguments[1] !== undefined ? _arguments[1] : '/';
               _context4.next = 3;
-              return _this9.$parent.handleRequest(params, url);
+              return _this8.$parent.handleRequest(params, url);
             case 3:
               return _context4.abrupt("return", _context4.sent);
             case 4:
@@ -1226,7 +1176,7 @@ var __vue_staticRenderFns__ = [];
 /* style */
 var __vue_inject_styles__ = function __vue_inject_styles__(inject) {
   if (!inject) return;
-  inject("data-v-3b0ec85f_0", {
+  inject("data-v-54d1e195_0", {
     source: "*{box-sizing:border-box}.medians-calendar-wrapper{font-family:-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\",\"Segoe UI Symbol\";min-height:1440px;--main-color:#ec4d3d;--weekend-color:#f7f7f7;--current-day-color:#fef4f4;--table-cell-border-color:#e5e5e5;--odd-cell-border-color:#e5e5e5;--hour-row-color:inherit;--dark:#212121;--lightg:#9e9e9e;--card-bgcolor:#4285f4;--card-color:white;--max-hours:10;--previous-events:#c6dafc;--previous-text-color:#727d8f}.medians-calendar-wrapper.gstyle{--hour-row-color:#212121;--main-color:#4285f4;--weekend-color:transparent;--current-day-color:transparent;--table-cell-border-color:#e0e0e0;--odd-cell-border-color:transparent;font-family:\"Google Sans\",Roboto,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Arial,sans-serif}.medians-calendar-wrapper.gstyle .week-navigator{background:#fff;border-bottom:none;padding:20px;color:rgba(0,0,0,.54)}.medians-calendar-wrapper.gstyle .week-navigator button{color:rgba(0,0,0,.54)}.medians-calendar-wrapper.gstyle .created-event,.medians-calendar-wrapper.gstyle .creating-event{background-color:var(--card-bgcolor);color:var(--card-color);text-shadow:none;border-left:none;border-radius:2px;opacity:1;border-bottom:solid 1px rgba(0,0,0,.03)}.medians-calendar-wrapper.gstyle .created-event>*,.medians-calendar-wrapper.gstyle .creating-event>*{text-shadow:none}.medians-calendar-wrapper.gstyle .is-past .created-event,.medians-calendar-wrapper.gstyle .is-past .creating-event{background-color:var(--previous-events);color:var(--previous-text-color)}.medians-calendar-wrapper.gstyle .created-event{width:96%}.medians-calendar-wrapper.gstyle .created-event .time{right:2px}.medians-calendar-wrapper.gstyle .sticky-top .days{margin-left:0;padding-left:55px}.medians-calendar-wrapper.gstyle .all-day{display:none}.medians-calendar-wrapper.gstyle ul.building-blocks.day-1 li.is-an-hour::before{content:\"\";position:absolute;bottom:-1px;left:-10px;width:10px;height:1px;background-color:var(--table-cell-border-color)}.medians-calendar-wrapper.gstyle .hours,.medians-calendar-wrapper.gstyle ul.building-blocks li{border-right:solid 1px var(--table-cell-border-color)}.medians-calendar-wrapper.gstyle .hours li{font-size:80%}.medians-calendar-wrapper.gstyle .hour-indicator-line>span.line{height:2px;background-color:#db4437}.medians-calendar-wrapper.gstyle .hour-indicator-line>span.line:before{content:\"\";width:12px;height:12px;display:block;background-color:#db4437;position:absolute;top:-1px;left:0;border-radius:100%}.medians-calendar-wrapper.gstyle .days{border-top:solid 1px var(--table-cell-border-color);position:relative}.medians-calendar-wrapper.gstyle .days:before{content:\"\";position:absolute;height:1px;width:55px;left:0;bottom:0;background-color:var(--table-cell-border-color)}.medians-calendar-wrapper.gstyle .day-indicator{display:flex;flex-direction:column;align-items:center;color:var(--dark);font-size:13px;padding-left:0;border-right:solid 1px var(--table-cell-border-color)}.medians-calendar-wrapper.gstyle .day-indicator>div{display:flex;flex-direction:column;align-items:center}.medians-calendar-wrapper.gstyle .day-indicator.is-before{color:#757575}.medians-calendar-wrapper.gstyle .day-indicator .number-date{margin-left:0;margin-right:0;order:2;font-size:16px;font-weight:500;width:28px;height:28px;border-radius:100%;align-items:center;justify-content:center;display:flex;margin-top:4px}.medians-calendar-wrapper.gstyle .day-indicator.today{border-bottom-color:var(--table-cell-border-color)}.medians-calendar-wrapper.gstyle .day-indicator.today:after{display:none}.medians-calendar-wrapper.gstyle .day-indicator.today .number-date{background-color:var(--main-color);color:#fff}.medians-calendar-wrapper.gstyle .day-indicator .letters-date{margin-left:0;margin-right:0;font-weight:500;text-transform:uppercase;font-size:11px}.medians-calendar-wrapper.gstyle .day-indicator:first-child{position:relative}.medians-calendar-wrapper.gstyle .day-indicator:first-child::before{content:\"\";position:absolute;left:-1px;top:0;width:1px;height:100%;background-color:var(--table-cell-border-color)}.medians-calendar-wrapper.gstyle .creating-event,.medians-calendar-wrapper.gstyle .popup-wrapper{box-shadow:0 6px 10px 0 rgba(0,0,0,.14),0 1px 18px 0 rgba(0,0,0,.12),0 3px 5px -1px rgba(0,0,0,.2);transition:opacity .1s linear}.medians-calendar-wrapper.non-desktop .building-blocks{pointer-events:none}.medians-calendar-wrapper.day-view .day-indicator{align-items:flex-start;text-align:center;padding-left:10px}.created-event,.creating-event{padding:4px 6px;cursor:default;word-break:break-word;height:100%;width:100%;font-size:14px}.created-event h4,.creating-event h4{font-weight:400}.creating-event{background-color:#34aadc;opacity:.9}.creating-event>*{text-shadow:0 0 7px rgba(0,0,0,.25)}.created-event{background-color:#bfecff;opacity:.74;border-left:solid 3px #34aadc;color:#1f6570}.week-navigator{display:flex;align-items:center;background:linear-gradient(#fdfdfd,#f9f9f9);border-bottom:solid 1px #ec4d3d;padding:10px 20px}.week-navigator .nav-wrapper{display:flex;align-items:center;justify-content:space-between;font-size:22px;width:25ch;max-width:30ch;margin:0 auto}.week-navigator .nav-wrapper span{white-space:nowrap}.week-navigator button{background:0 0;border:none;padding:0;display:inline-flex;margin:0 10px;color:#ec4d3d;align-items:center;font-size:14px;padding-bottom:5px}.medians-calendar-wrapper{background-color:#fff;min-width:300px}.no-scroll{overflow-y:hidden;max-height:100%}.hour-indicator-line{position:absolute;z-index:2;width:100%;height:10px;display:flex;align-items:center;pointer-events:none;user-select:none}.hour-indicator-line>span.line{background-color:var(--main-color);height:1px;display:block;flex:1}.hour-indicator-line>span.time-value{font-size:14px;width:48px;color:var(--main-color);font-weight:600;background-color:#fff}.hour-indicator-tooltip{position:absolute;z-index:0;background-color:var(--main-color);width:10px;height:10px;display:block;border-radius:100%;pointer-events:none;user-select:none}ul.medians-calendar-day li.medians-calendar-cell:last-child{display:none}.week-navigator-button{outline:0}.week-navigator-button:active svg,.week-navigator-button:hover svg{stroke:var(--main-color)}",
     map: undefined,
     media: undefined

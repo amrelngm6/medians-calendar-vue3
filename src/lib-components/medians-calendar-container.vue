@@ -104,6 +104,7 @@
             @update-event="updateEvent"
             />
 
+
     </div>
 </template>
 <script>
@@ -125,7 +126,6 @@ import {
 export default {
     components: {
         MediansCalendarWeekView: () => import('./medians-calendar-weekview.vue'),
-        moment
     },
     props: {
         // this provided array will be kept in sync
@@ -165,6 +165,7 @@ export default {
             events:[],
             current_day: getHourlessDate(),
             default_options: {
+                events_url: '/',
                 cell_height: 10,
                 scrollToNow: false,
                 hourlySelection: false,
@@ -216,7 +217,7 @@ export default {
             let provided_props = this.configuration;
 
             let conditions = {
-                events_url: val => ['/'].includes(val),
+                events_url: val => typeof val != false,
                 scrollToNow: val => typeof val === 'boolean',
                 hourlySelection: val => typeof val === 'boolean',
                 start_day: val => !isNaN(Date.parse(val)),
@@ -274,80 +275,53 @@ export default {
         return provider;
     },
     methods: {
-
-        /**
-         * Change calendar date
-         */
+        getTime,
         changeDay(numDays) {
-            this.current_day = moment(this.current_day).add(numDays, 'days').format('YYYY-MM-DD');
+            this.current_day = addDays(this.current_day, numDays).toISOString();
             setTimeout(() => this.reloadEvents());
         },
+        
+        
 
         /**
          * Update event data
          */
         updateInfo(activeItem)
         {
-            this.showPopup = false; 
             this.$emit('update-info', activeItem)
-            this.showPopup = true
-
             return this;
         },
 
 
         show_modal(item = null){
-            this.showPopup = false; 
             this.$emit('show_modal', item);
-            this.showPopup = true; 
-
         },
 
         show_event(item = null){
-            this.showModal = false;
-            this.setEvent(item);
             this.$emit('show_event', item);
-            this.showBooking = true;
         },
 
         addTime(time, minutes = 0)
         {
-            return addMinutes(new Date(time), minutes);
+            return moment(time).add(minutes, 'minutes');
         },
         dateTime(date)
         {
-            let d = new Date(date).toISOString();
-            var datestring = (d.slice(11, 16));
-            return datestring;
+            return  moment(date).format('HH:mm');
         },
         dateText(date)
         {
-            let d = new Date(date).toISOString();
-            var datestring = d.slice(0, 10);
-            return datestring;
+            return moment(date).format('YYYY-MM-DD');
         },
 
+        
         /** 
          * Set active item
          * 
          */
-        setNewItem(newEvenet)
+        setNewItem(newEvent)
         {
-            let startDate = moment(newEvenet.starting_cell.time);
-
-            let endDate = (newEvenet.ending_cell.value === newEvenet.starting_cell.value) 
-            ? moment(newEvenet.ending_cell.time).add(60, 'minutes')
-            : moment(newEvenet.ending_cell.time);
-
-            this.activeItem = cloneObject(newEvenet)
-            this.games = newEvenet.device ? newEvenet.device.games : []
-            this.activeItem.device_id = newEvenet.device ? newEvenet.device.id : 0
-            this.activeItem.start = startDate.format('HH:mm')
-            this.activeItem.start_time = startDate.format('YYYY-MM-DD HH:mm')
-            this.activeItem.end = endDate.format('HH:mm')
-            this.activeItem.end_time = endDate.format('YYYY-MM-DD HH:mm')
-            this.activeItem.date = endDate.format('YYYY-MM-DD')
-            this.showModal = true
+            this.$emit('set-new-event', newEvent)
             return this;
         },
 
@@ -358,16 +332,7 @@ export default {
          */
         setActiveItem(props)
         {
-            this.activeItem = cloneObject(props)
-            this.games = props.device ? props.device.games : []
-            this.activeItem.startStr = props.start
-            this.activeItem.start = props.starting_cell ? this.dateTime(props.starting_cell.value) : null
-            this.activeItem.start_time = props.starting_cell ? props.starting_cell.time  : null
-            this.activeItem.end = props.ending_cell ? this.dateTime(props.ending_cell.value)  : null
-            this.activeItem.end_time = props.ending_cell ? props.ending_cell.time  : null
-            this.activeItem.date = props.starting_cell ? this.dateText(props.starting_cell.value)  : null
-            this.activeItem.subtotal = this.subtotal();
-            this.showModal = true
+            this.$emit('set-active-event', props)
             return this;
         },
 
@@ -378,10 +343,7 @@ export default {
          */
         setEvent(props)
         {
-            this.activeItem = cloneObject(props)
-            this.activeItem.startStr = props.start
-            this.activeItem.subtotal = this.subtotal();
-            this.showModal = true
+            this.$emit('set-event', props)
             return this;
         },
 
@@ -399,13 +361,8 @@ export default {
          */
         updateEvent(event, device, cellData)
         {
-
-            let newEvent = cloneObject(event)
-            newEvent.from = moment(cellData.time).format('YYYY-MM-DD HH:mm');
-            newEvent.to = moment(cellData.time).add(event.duration, 'minutes').format('YYYY-MM-DD HH:mm');
-            newEvent.device_id = device.id;
-            this.submit('Event.update', newEvent);
-            this.log(newEvent)
+            this.$emit('update-event', event, device, cellData)
+            return this;
         },
 
         
@@ -415,26 +372,10 @@ export default {
          */
         submit(type, newitem = null) {
 
-            let item = newitem ? newitem : this.activeItem;
-
-            let request_type = type.includes('create') ? 'create' : 'update';
-
-            const params = new URLSearchParams([]);
-            item.start_time = this.current_day+ ' ' +item.start
-            item.end_time = this.current_day+ ' ' +item.end
-            params.append('type', type);
-            params.append('params[event]', JSON.stringify(item));
-            this.handleRequest(params, '/api/'+request_type).then(data => { 
-                this.hidePopup();
-            });
+            this.$emit('submit', type, newitem)
         },
 
-        subtotal()
-        {
-            let price = this.activeItem.device_cost;
-
-            return (Number(price) * Number(this.activeItem.duration_hours)).toFixed(2) ;
-        },
+        
         hidePopup(reload = true)
         {
             this.showBooking = false;
@@ -458,7 +399,7 @@ export default {
          */
         async loadEvents()
         {
-            return await this.handleGetRequest( this.medians_calendar_options.events_url + '?start='+this.current_day+'&end='+addDays(this.current_day, 1).toISOString()).then(response => {
+            return await this.handleGetRequest(this.medians_calendar_options.events_url+ '?start='+this.current_day+'&end='+addDays(this.current_day, 1).toISOString()).then(response => {
                 this.medians_calendar_events = response;
                 return this;
             });
@@ -478,6 +419,7 @@ export default {
         {
             this.$parent.log(data);
         },
+
         __(i)
         {
             return this.$parent.__(i);
