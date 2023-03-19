@@ -1,6 +1,6 @@
 {
   "_from": "git+https://github.com/amrelngm6/medians-calendar-vue3.git",
-  "_id": "medians-calendar-vue3@0.0.2",
+  "_id": "medians-calendar-vue3@0.0.3",
   "_inBundle": false,
   "_integrity": "",
   "_location": "/medians-calendar-vue3",
@@ -84,5 +84,5 @@
     "build:ssr": "cross-env NODE_ENV=production rollup --config build/rollup.config.js --format cjs",
     "serve": "vue-cli-service serve src/serve-dev.js"
   },
-  "version": "0.0.2"
+  "version": "0.0.3"
 }
