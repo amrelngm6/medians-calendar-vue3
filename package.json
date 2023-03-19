@@ -1,24 +1,24 @@
 {
-  "_from": "git+https://github.com/amrelngm6/medians_calendar.git",
-  "_id": "medians-calendar@0.0.3",
+  "_from": "git+https://github.com/amrelngm6/medians-calendar-vue3.git",
+  "_id": "medians-calendar-vue3@0.0.2",
   "_inBundle": false,
   "_integrity": "",
-  "_location": "/medians-calendar",
+  "_location": "/medians-calendar-vue3",
   "_phantomChildren": {},
   "_requested": {
     "type": "git",
-    "raw": "git+https://github.com/amrelngm6/medians_calendar.git",
-    "rawSpec": "git+https://github.com/amrelngm6/medians_calendar.git",
-    "saveSpec": "git+https://github.com/amrelngm6/medians_calendar.git",
-    "fetchSpec": "https://github.com/amrelngm6/medians_calendar.git",
+    "raw": "git+https://github.com/amrelngm6/medians-calendar-vue3.git",
+    "rawSpec": "git+https://github.com/amrelngm6/medians-calendar-vue3.git",
+    "saveSpec": "git+https://github.com/amrelngm6/medians-calendar-vue3.git",
+    "fetchSpec": "https://github.com/amrelngm6/medians-calendar-vue3.git",
     "gitCommittish": null
   },
   "_requiredBy": [
     "#USER",
     "/"
   ],
-  "_resolved": "git+https://github.com/amrelngm6/medians_calendar.git#347b96c1817fae195198ad34e5f83c5a4bfe22ed",
-  "_spec": "git+https://github.com/amrelngm6/medians_calendar.git",
+  "_resolved": "git+https://github.com/amrelngm6/medians-calendar-vue3.git#347b96c1817fae195198ad34e5f83c5a4bfe22ed",
+  "_spec": "git+https://github.com/amrelngm6/medians-calendar-vue3.git",
   "_where": "E:\\Development\\xampp8\\htdocs\\medians\\medians_ps",
   "bundleDependencies": false,
   "dependencies": {
@@ -63,7 +63,7 @@
     "!src/serve-dev.*"
   ],
   "main": "dist/index.js",
-  "name": "medians-calendar",
+  "name": "medians-calendar-vue3",
   "peerDependencies": {
     "vue": "^2.6.10",
     "portal-vue": "^2.1.7"

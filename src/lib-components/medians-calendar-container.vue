@@ -9,7 +9,7 @@
         }"
         @touchstart="scrollable = false"
         @touchend="scrollable = true"
-    >
+        >
         <div class="week-navigator" style="direction:ltr;">
             <div
                 class="nav-wrapper"
@@ -252,8 +252,6 @@ export default {
     created() {
         this.current_day = this.medians_calendar_options.start_day;
         
-        this.loadEvents();
-
         if (!this.$medians_calendar) {
             Vue.prototype.$medians_calendar = {};
         }
@@ -273,6 +271,10 @@ export default {
             get: () => this.medians_calendar_events,
         });
         return provider;
+    },
+    mounted()
+    {
+        this.loadEvents();
     },
     methods: {
         getTime,
