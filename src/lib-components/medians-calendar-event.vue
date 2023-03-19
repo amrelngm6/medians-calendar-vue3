@@ -26,11 +26,17 @@
         >
 
         <div :class="event.classes" :key="`opacity${opacity}`" :style="`opacity:${opacity}`" class="animated fadeIn rounded-lg px-2 py-3">
-            <portal-target
-                name="event-details"
-                :slot-props="event"
-                slim
-            />
+            <div class="absolute top-4 right-2 flex gap gap-2 font-semibold text-xs">
+                <span v-text="event.start_time"></span>
+                <span v-text="event.end_time"></span>
+            </div>
+            <div  >
+                <span class="w-full block pb-2 text-left" style="direction: ltr;">
+                    <img v-if="event.game" :src="event.game.picture" class="rounded-full w-8 h-8 mb-2" />
+                    <span class='font-xxs font-semibold text-left w-full' v-text="event.title"></span>
+                </span>
+
+            </div>
         </div>
 
     </div>

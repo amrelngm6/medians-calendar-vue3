@@ -98,7 +98,7 @@
         <medians-calendar-week-view 
             :events="medians_calendar_events" 
             v-if="showCalendar" 
-            :key="current_day" 
+            :key="medians_calendar_events" 
             :current_day="current_day" 
             :devices="devices" 
             @update-event="updateEvent"
