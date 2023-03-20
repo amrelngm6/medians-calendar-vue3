@@ -27,7 +27,7 @@
         @dragstart="dragStart(event)"
         >
 
-        <div :class="event.classes" :key="`opacity${opacity}`" :style="`opacity:${opacity}`" class="animated fadeIn rounded-lg px-2 py-3">
+        <div :class="event.status != 'canceled' ? event.classes : ''" :key="`opacity${opacity}`" :style="`opacity:${opacity}`" class="animated fadeIn rounded-lg px-2 py-3">
             <div class="absolute top-4 right-2 flex gap gap-2 font-semibold text-xs">
                 <span v-text="event.start_time"></span>
                 <span v-text="event.end_time"></span>

@@ -541,7 +541,7 @@ var getTopDistance = function getTopDistance(start) {
 var script = {
   components: {
     MediansCalendarWeekView: function MediansCalendarWeekView() {
-      return import('./medians-calendar-weekview-431adae3.js');
+      return import('./medians-calendar-weekview-bcc5a2ed.js');
     }
   },
   props: {
