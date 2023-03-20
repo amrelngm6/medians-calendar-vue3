@@ -11,7 +11,7 @@
         :class="{
             'bg-gray-200': event.status == 'canceled',
             'text-gray-500': event.status == 'canceled',
-            event.status: event.status == 'canceled',
+            'canceled': event.status == 'canceled',
             'is-past': isPast,
             'is-past': isPast,
             overlaps: overlaps > 0,
