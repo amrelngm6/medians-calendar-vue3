@@ -123,7 +123,7 @@ export default {
         {
             if (this.event.status == 'canceled')
             {
-                this.$alert(this.$root.__('this_is_canceled_event'))
+                this.$alert(this.$root.$children[0].__(i))
             } else {
                 this.$parent.show_modal(this.event);
             }
