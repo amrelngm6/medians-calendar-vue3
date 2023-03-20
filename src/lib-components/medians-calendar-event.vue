@@ -9,7 +9,9 @@
           top: ${top_offset};
         `"
         :class="{
-            'canceled': event.status == 'canceled',
+            'bg-gray-200': event.status == 'canceled',
+            'text-gray-500': event.status == 'canceled',
+            event.status: event.status == 'canceled',
             'is-past': isPast,
             'is-past': isPast,
             overlaps: overlaps > 0,
