@@ -1,4 +1,4 @@
-import { i as isWeekend, a as isToday, c as cloneObject, g as getDistance, b as _objectSpread2, d as __vue_normalize__, e as __vue_create_injector__, f as _typeof, h as getTopDistance, j as getLocaleTime, k as isBefore, l as getHourlessDate } from './index-3e19d897.js';
+import { i as isWeekend, a as isToday, c as cloneObject, g as getDistance, b as _objectSpread2, d as __vue_normalize__, e as __vue_create_injector__, f as _typeof, h as getTopDistance, j as getLocaleTime, k as isBefore, l as getHourlessDate } from './index-f8767c62.js';
 import 'vue';
 import 'moment';
 
@@ -117,13 +117,13 @@ var script = {
   },
   components: {
     MediansCalendarCell: function MediansCalendarCell() {
-      return import('./medians-calendar-cell-4236e755.js');
+      return import('./medians-calendar-cell-b67a808b.js');
     },
     MediansCalendarEvent: function MediansCalendarEvent() {
-      return import('./medians-calendar-event-63d12651.js');
+      return import('./medians-calendar-event-785a1eb1.js');
     },
     MediansCalendarCellBg: function MediansCalendarCellBg() {
-      return import('./medians-calendar-cell-bg-d7bb5d69.js');
+      return import('./medians-calendar-cell-bg-96f57cde.js');
     }
   },
   provide: function provide() {
@@ -138,6 +138,10 @@ var script = {
   inject: ["medians_calendar_options"],
   mounted: function mounted() {
     if (this.medians_calendar_options.scrollToNow && this.isToday) this.scrollView();
+    this.passed = this.passedTime;
+    setInterval(function () {
+      this.passed = this.passed + 3;
+    }, 60000);
   },
   computed: {
     isWeekend: function isWeekend$1() {
@@ -166,7 +170,8 @@ var script = {
       temporary_event: null,
       // day cells and events are used for rendering purposes
       day_cells: [],
-      day_events: null
+      day_events: null,
+      passed: 0
     };
   },
   methods: {
@@ -448,9 +453,10 @@ var __vue_render__ = function __vue_render__() {
       "id": "day-wrapper"
     }
   }, [_vm.isToday ? _c('div', {
+    key: _vm.passed,
     ref: "nowIndicator",
     class: _vm.medians_calendar_options.style === 'material_design' ? 'hour-indicator-line' : 'hour-indicator-tooltip',
-    style: "top:" + _vm.passedTime + "px",
+    style: "top:" + _vm.passed + "px",
     attrs: {
       "id": "now-indicator"
     }
@@ -508,7 +514,7 @@ var __vue_staticRenderFns__ = [];
 /* style */
 var __vue_inject_styles__ = function __vue_inject_styles__(inject) {
   if (!inject) return;
-  inject("data-v-46880b6c_0", {
+  inject("data-v-7588a4c9_0", {
     source: "ul.medians-calendar-day{position:relative;background-color:#fff}ul.medians-calendar-day.is-weekend{background-color:var(--weekend-color)}ul.medians-calendar-day.is-today{background-color:var(--current-day-color)}ul.medians-calendar-day .clear{position:absolute;z-index:1;top:-20px;right:0;font-size:10px}ul.medians-calendar-day.creating{z-index:11}ul.medians-calendar-day.creating .created-event{pointer-events:none}",
     map: undefined,
     media: undefined
@@ -675,7 +681,7 @@ var __vue_render__$1 = function __vue_render__() {
   }, [_c('ul', {
     staticClass: "days"
   }, _vm._l(_vm.devices || [], function (device, index) {
-    return _c('li', {
+    return device ? _c('li', {
       key: index,
       staticClass: "day-indicator",
       class: {
@@ -688,7 +694,7 @@ var __vue_render__$1 = function __vue_render__() {
       staticClass: "letters-date"
     }, [_vm._v(_vm._s(device.title))]), _vm._v(" "), _c('span', {
       staticClass: "number-date w-4 h-4 text-sm"
-    }, [_vm._v(_vm._s(device.id))])]) : _vm._e()]);
+    }, [_vm._v(_vm._s(device.id))])]) : _vm._e()]) : _vm._e();
   }), 0), _vm._v(" "), _c('ul', {
     staticClass: "all-day"
   }, [_c('span', [_vm._v("All Day")]), _vm._v(" "), _vm._l(_vm.devices || [], function (day, index) {
@@ -730,7 +736,7 @@ var __vue_render__$1 = function __vue_render__() {
   })]), _vm._v(" "), _vm.days ? _c('div', {
     staticClass: "w-full flex"
   }, _vm._l(_vm.devices, function (device, index) {
-    return _c('medians-calendar-days', {
+    return device ? _c('medians-calendar-days', {
       key: "day-" + _vm.current_day + index,
       ref: _vm.days[0].value.slice(0, 10) + '-day' + index,
       refInFor: true,
@@ -747,7 +753,7 @@ var __vue_render__$1 = function __vue_render__() {
         "update-event": _vm.updateEvent,
         "drap-start-event": _vm.draggedEvent
       }
-    });
+    }) : _vm._e();
   }), 1) : _vm._e()])]) : _vm._e()]);
 };
 var __vue_staticRenderFns__$1 = [];
@@ -755,11 +761,11 @@ var __vue_staticRenderFns__$1 = [];
 /* style */
 var __vue_inject_styles__$1 = function __vue_inject_styles__(inject) {
   if (!inject) return;
-  inject("data-v-d14c4b02_0", {
+  inject("data-v-7e77c291_0", {
     source: ".calendar-wrap{display:flex;flex-direction:column}.calendar-wrap ul{list-style:none;padding:0}.calendar-wrap ul>li{display:flex}.sticky-top{position:sticky;top:0;z-index:999;background-color:#fff}.sticky-top .days{margin:0;display:flex;margin-left:55px}.sticky-top .days li{display:inline-flex;align-items:flex-end;padding-top:10px;flex:1;font-size:1.1rem;color:#666;font-weight:300;margin-right:var(--space-between-cols);border-bottom:solid 1px #e5e5e5;padding-bottom:5px;position:relative;font-size:18px}.sticky-top .days li span{margin-right:3px}.sticky-top .days li span:first-child{font-size:20px;font-weight:500}.sticky-top .days .today{border-bottom-color:var(--main-color);color:var(--main-color)!important}.sticky-top .days .today::after{content:\"\";position:absolute;height:2px;bottom:0;left:0;width:100%;background-color:var(--main-color)}.sticky-top .all-day{display:flex;margin-bottom:0;margin-top:0;border-bottom:solid 2px #e5e5e5}.sticky-top .all-day span{display:flex;align-items:center;padding:0 5px;width:55px;font-weight:500;font-size:.8rem;color:#b8bbca;text-transform:lowercase}.sticky-top .all-day li{flex:1;margin-right:var(--space-between-cols)}.sticky-top .all-day li.all-today{background-color:#fef4f4}.dummy-row{display:flex;padding-left:55px}.dummy-row ul{display:flex;flex:1;margin:0}.dummy-row li{flex:1;height:15px;margin-right:var(--space-between-cols);border-bottom:solid 1px #e5e5e5}.blocks{display:flex;position:relative;height:100%}.blocks ul{margin-top:0}.blocks .building-blocks{flex:1;margin-right:var(--space-between-cols);margin-bottom:0;display:flex;flex-direction:column}.blocks .calendar-blocks{width:100%;display:flex;position:relative}.hours{display:flex;flex-direction:column;color:#b8bbca;font-weight:500;font-size:.85rem;width:55px;height:100%;margin-bottom:0}.hours li{color:var(--hour-row-color);border-bottom:solid 1px transparent;padding-left:8px}.hours li span{margin-top:-8px}.hours li:first-child span{visibility:hidden}",
     map: undefined,
     media: undefined
-  }), inject("data-v-d14c4b02_1", {
+  }), inject("data-v-7e77c291_1", {
     source: ".rtl .medians-calendar-wrapper.gstyle .sticky-top .days{padding-left:0;padding-right:55px}",
     map: undefined,
     media: undefined

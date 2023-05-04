@@ -1,4 +1,4 @@
-import { d as __vue_normalize__, e as __vue_create_injector__ } from './index-3e19d897.js';
+import { d as __vue_normalize__, e as __vue_create_injector__ } from './index-f8767c62.js';
 import 'vue';
 import 'moment';
 
@@ -8,7 +8,7 @@ var script = {
   inject: ['medians_calendar_options'],
   components: {
     MediansCalendarEvent: function MediansCalendarEvent() {
-      return import('./medians-calendar-event-63d12651.js');
+      return import('./medians-calendar-event-785a1eb1.js');
     }
   },
   computed: {

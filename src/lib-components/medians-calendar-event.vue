@@ -1,7 +1,7 @@
 <template>
     <div
         v-if="event"
-        class="right-0 left-0 mx-auto event-card cursor-pointer"
+        class="animated right-0 left-0 mx-auto event-card cursor-pointer"
         :ref="`medians_calendarEventRef-${event.id}`"
         :style="`
           height: ${distance}; 
@@ -12,7 +12,10 @@
             'bg-gray-200': event.status == 'canceled',
             'text-gray-500': event.status == 'canceled',
             'canceled': event.status == 'canceled',
-            'is-past': isPast,
+            'new': event.status == 'new',
+            'active': event.status == 'active',
+            'completed': event.status == 'completed',
+            'paid': event.status == 'paid',
             'is-past': isPast,
             overlaps: overlaps > 0,
             'two-in-one': total > 1,
@@ -51,6 +54,7 @@ export default {
     props: ['event', 'total', 'index', 'overlaps','column_index'],
     mounted() {
         let t = this;
+        t.status = t.event.status;
         setTimeout(function () {
             jQuery('#event-'+t.index+' > .animated').css('opacity', 1)
         }, this.column_index * this.medians_calendar_options.animation_speed)
@@ -60,6 +64,7 @@ export default {
         opacity: 0,
         inspecting: false,
         editing: false,
+        status:''
     }),
     computed: {
         isPast() {

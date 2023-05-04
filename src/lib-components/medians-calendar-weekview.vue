@@ -6,6 +6,7 @@
           class="day-indicator"
           :key="index"
           v-for="(device, index) in devices || []"
+          v-if="device"
           :class="{ today: _isToday(current_day), 'is-before': isDayBefore(current_day) }"
         >
           <div v-if="device" class="w-full">
@@ -74,6 +75,7 @@
           :ref="days[0].value.slice(0, 10)+'-day'+index"
           @update-event="updateEvent"
           @drap-start-event="draggedEvent"
+          v-if="device"
         >
         </medians-calendar-days>
         </div>

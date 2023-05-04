@@ -4,11 +4,11 @@
       'is-today': isToday,
       creating: creator.creating || creator.status === 'active'
     }" class="medians-calendar-day" :ref="day.value + '-reference'">
-        <div ref="nowIndicator" id="now-indicator" :class="
+        <div ref="nowIndicator" :key="passed" id="now-indicator" :class="
         medians_calendar_options.style === 'material_design'
           ? 'hour-indicator-line'
           : 'hour-indicator-tooltip'
-      " v-if="isToday" :style="`top:${passedTime}px`">
+      " v-if="isToday" :style="`top:${passed}px`">
             <span class="line" v-show="medians_calendar_options.style === 'material_design'"></span>
         </div>
 
@@ -74,6 +74,8 @@ export default {
     inject: ["medians_calendar_options"],
     mounted() {
         if (this.medians_calendar_options.scrollToNow && this.isToday) this.scrollView();
+        this.passed = this.passedTime
+        setInterval(function(){this.passed = this.passed+3},60000);
     },
     computed: {
         isWeekend() {
@@ -103,6 +105,7 @@ export default {
         // day cells and events are used for rendering purposes
         day_cells: [],
         day_events: null,
+        passed:0
     }),
     methods: {
 
