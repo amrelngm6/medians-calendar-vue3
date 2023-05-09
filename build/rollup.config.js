@@ -112,7 +112,7 @@ if (!argv.format || argv.format === "cjs") {
     external,
     output: {
       compact: true,
-      file: "dist/medians-calendar-vue.umd.js",
+      file: "dist/medians-pie-chart.umd.js",
       format: "cjs",
       name: "MediansCalendarVue",
       exports: "named",
