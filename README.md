@@ -65,4 +65,12 @@ data: () => ({
 </script>
 ```
 
-### 🎛 MediansCalendar Options
+## 🏁  Made with MediansCalendar  
+<img src="https://ps.medianssolutions.com/assets/new-booking.webp" />
+<img src="https://ps.medianssolutions.com/assets/complete-booking.webp" />
+
+
+Example 
+https://ps.medianssolutions.com/
+
+### 🎛 Thanks for watching
